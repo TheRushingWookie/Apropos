@@ -22,7 +22,7 @@ def query():
 @interface.route("/register_api/<api_name>")
 def register_api(api_name):
 	try:
-		# Returns all values with "tag" as the key
+		# Returns all values that have "tag" as the key
 		return str(dict(request.args)["tag"])
 	except:
 		return "Something went wrong..."
@@ -36,6 +36,5 @@ def drop_api(api_name):
 	except:
 		return "Something went wrong..."
 
-# Run only if called in this script
 if __name__ == "__main__":
 	interface.run()
