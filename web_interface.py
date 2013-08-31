@@ -1,14 +1,26 @@
 from flask import Flask
+from flask import g
 import sqlite3
+
+db = "apis.db"
+
+def get_db():
+	dbobj = getattr(g, "_database", None)
+	if dbobj is None:
+		dbobj = g._database = sqlite3.connect("apis.db")
+	return dbobj
+
+def close_connection(exception):
+    dbobj = getattr(g, '_database', None)
+    if dbobj is not None:
+        dbobj.close()
 
 app = Flask(__name__)
 
 @app.route("/query")
 def query():
-	conn = sqlite3.connect("apis.db")
-	c = conn.cursor()
-	
-	return "Query page"
+	cur = get_db().cursor()
+	return cur.execute("SELECT * FROM apis").fetchall()
 
 @app.route("/register_api/<api_name>")
 def register_api(api_name):
