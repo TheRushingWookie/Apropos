@@ -2,22 +2,37 @@ from flask import Flask
 from flask import request
 import sqlite3
 
-app = Flask(__name__)
+# Create flask object
+interface = Flask(__name__)
+
+# Open an sqlite connection
 conn = sqlite3.connect("apis.db")
 
-@app.route("/query")
+# apropros.com/query
+@interface.route("/query")
 def query():
-	c = conn.cursor()
-	return str(c.execute("SELECT * FROM apis").fetchall())
+	try:
+		c = conn.cursor()
+		return str(c.execute("SELECT * FROM apis").fetchall())
+	except:
+		return
 
-@app.route("/register_api/<api_name>")
+# apropros.com/register_api/...
+@interface.route("/register_api/<api_name>")
 def register_api(api_name):
-	return str(request.args)
+	try:
+		return str(request.args)
+	except:
+		return
 
-
-@app.route("/drop_api/<api_name>")
+# apropros.com/drop_api/...
+@interface.route("/drop_api/<api_name>")
 def drop_api(api_name):
-	return str(request.args)
+	try:
+		return str(request.args)
+	except:
+		return
 
+# Run only if called in this script
 if __name__ == "__main__":
-	app.run()
+	interface.run()
