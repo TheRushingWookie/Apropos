@@ -17,19 +17,19 @@ def query():
 	except:
 		return
 
-# apropros.com/register_api/...
+# apropros.com/register_api/api_name&tag=...
 @interface.route("/register_api/<api_name>")
 def register_api(api_name):
 	try:
-		return str(request.args)
+		return str(dict(request.args)["tag"])
 	except:
 		return
 
-# apropros.com/drop_api/...
+# apropros.com/drop_api/api_name
 @interface.route("/drop_api/<api_name>")
 def drop_api(api_name):
 	try:
-		return str(request.args)
+		return "Delete " + api_name + " from the database"
 	except:
 		return
 
