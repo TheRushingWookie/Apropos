@@ -11,3 +11,5 @@ def send_email(user, password, user_address, receiver, message):
     # Send email    
     server.sendmail(user_address, receiver, message)
     server.quit()
+
+def register_api()
