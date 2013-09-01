@@ -45,7 +45,7 @@ def web_register_api_provider():
 def web_register_api():
 	try:
 		c = database.conn.cursor()
-		api_name = str(list(dict(request.args)["api_name"])[0])
+		api_name = urllib2.unquote(str(list(dict(request.args)["api_name"])[0]))
 		api_provider = str(list(dict(request.args)["api_provider"])[0])
 		provider_key = str(list(dict(request.args)["provider_key"])[0])
 		tags_unicode = list(dict(request.args)["tag"])
