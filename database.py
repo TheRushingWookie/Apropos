@@ -1,4 +1,5 @@
 import sqlite3
+import uuid
 from time import gmtime, strftime
 conn = sqlite3.connect('apis.db')
 def create_apropos_tables (database_name):
@@ -18,7 +19,7 @@ def create_apropos_tables (database_name):
 	# We can also close the connection if we are done with it.
 	# Just be sure any changes have been committed or they will be lost.
 def generate_uuid ():
-	return 0
+	return str(uuid.uuid4())
 def if_provider_exists (provider_name):
 	c = conn.cursor()
 
@@ -36,7 +37,7 @@ def register_api_provider (api_provider_name,email):
 		return provider_key
 	else:
 		return None
-#print(register_api_provider("Example_provider", "example@example.com"))
+print(register_api_provider("Example_provider", "example@example.com"))
 
 def add_api_endpoint (api_provider_name, api_name,params):
 	c = conn.cursor()
@@ -52,4 +53,4 @@ def query_api(tags):
 					AND apis.rowid = tm.api_id
 					GROUP BY apis.id
 					HAVING COUNT( apis.id )=(?)''' (tags), (len(tags)))
-create_apropos_tables('apis')
+#create_apropos_tables('apis')
