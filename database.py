@@ -3,7 +3,6 @@ import uuid
 from time import gmtime, strftime
 conn = sqlite3.connect('apis.db')
 def create_apropos_tables (database_name):
-	conn = sqlite3.connect(database_name + '.db')
 	c = conn.cursor()
 
 	# Create table
@@ -37,7 +36,7 @@ def register_api_provider (api_provider_name,email):
 		return provider_key
 	else:
 		return None
-print(register_api_provider("Example_provider", "example@example.com"))
+# print(register_api_provider("Example_provider", "example@example.com"))
 
 def add_api_endpoint (api_provider_name, api_name,params):
 	c = conn.cursor()
