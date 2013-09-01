@@ -21,9 +21,7 @@ def create_apropos_tables (database_name):
 	# Just be sure any changes have been committed or they will be lost.
 def generate_uuid ():
 	return str(uuid.uuid4())
-def if_provider_exists (provider_name):
-	c = conn.cursor()
-
+def if_provider_exists (provider_name,c):
 	provider_results = c.execute ('''Select api_provider_name from api_providers where api_provider_name = ?''', (provider_name,)).fetchall()
 	if len (provider_results) > 0:
 		return True
@@ -32,7 +30,7 @@ def if_provider_exists (provider_name):
 def register_api_provider (api_provider_name,email):
 	c = conn.cursor()
 	time = strftime("%a, %d %b %Y %X +0000", gmtime())
-	if not if_provider_exists(api_provider_name):
+	if not if_provider_exists(api_provider_name,c):
 		provider_key = generate_uuid()
 		c.execute("insert into api_providers values (?, ?, ?, ?)", (time, api_provider_name, email, provider_key))
 		return provider_key
@@ -70,13 +68,14 @@ def query_api(tags):
 	c = conn.cursor()
 	placeholder= '?' # For SQLite. See DBAPI paramstyle.
 	placeholders= ', '.join(placeholder for unused in tags)
-	return c.execute('''SELECT api_endpoints.*
+	intersect_string = '''SELECT api_endpoints.*
 					FROM tagmap, api_endpoints, tags
 					WHERE tags.rowid = tagmap.tag_id
-					AND (tags.tag_name IN (?,?,?))
+					AND (tags.tag_name IN (''' + placeholders + '''))
 					AND api_endpoints.rowid = tagmap.api_id
 					GROUP BY api_endpoints.rowid
-					HAVING COUNT( api_endpoints.rowid )=(?)''', ('weather','temperature','windspeed', len(tags))).fetchall()
+					HAVING COUNT( api_endpoints.rowid )=(?)'''
+	return c.execute(intersect_string, tags + (len(tags),)).fetchall()
 #create_apropos_tables('apis')
 def print_table(table_name):
 	c = conn.cursor()
