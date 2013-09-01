@@ -2,7 +2,6 @@
 
 from flask import Flask
 from flask import request
-import sqlite3
 import json
 import email_script
 import database
@@ -14,13 +13,8 @@ interface = Flask(__name__)
 @interface.route("/query")
 def web_query():
 	try:
-		tags_raw = list(dict(request.args)["tag"])
-		tags = []
-		for tag in tags_raw:
-			tags.append(str(tag))
-#		c = conn.cursor()
-#		database = str(c.execute("SELECT * FROM apis").fetchall())
-		return str(tags)
+		tags = dict(request.args)
+		return str(request.args)
 	except:
 		return json.dumps({'Status': False})
 
