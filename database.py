@@ -17,7 +17,6 @@ def create_apropos_tables (database_name):
 	
 	# Save (commit) the changes	
 	conn.commit()
-	conn.close()
 	# We can also close the connection if we are done with it.
 	# Just be sure any changes have been committed or they will be lost.
 def generate_uuid ():
@@ -48,7 +47,7 @@ def add_api_endpoint (api_provider_name, api_name, owner_key,tags):
 		time = strftime("%a, %d %b %Y %X +0000", gmtime())
 		provider_results = c.execute ('''Select api_name from api_endpoints where api_name = (?)''', (api_name,)).fetchall()
 		if len(provider_results) > 0:
-			return "API " + api_name + " already exists" 
+			return False
 		else:
 			c.execute('''insert into api_endpoints values (?,?,?)''', (time, api_name, owner_key,))
 			api_id = c.lastrowid
@@ -60,18 +59,25 @@ def add_api_endpoint (api_provider_name, api_name, owner_key,tags):
 					c.execute('''insert into tags values (?)''', (tag,))
 					tag_id = c.lastrowid
 				c.execute('''insert into tagmap values (?,?)''', (tag_id,api_id))
-			return "Added API"
+			return True
 	else:
-		return "User not verified"
-			
+		return False
+'''
+id_example = register_api_provider("Example_provider", "example@example.com")
+add_api_endpoint("Example_provider", "test_api" , id_example ,("weather","temperature","windspeed"))'''			
 
 def query_api(tags):
 	c = conn.cursor()
-	return c.execute('''SELECT t.*
-					FROM tagmap tm, apis apis, tag t
-					WHERE t.rowid = tm.tag_id
-					AND (t.tag_name IN (?))
-					AND apis.rowid = tm.api_id
-					GROUP BY apis.id
-					HAVING COUNT( apis.id )=(?)''' (tags), (len(tags))).fetchall()
+	placeholder= '?' # For SQLite. See DBAPI paramstyle.
+	placeholders= ', '.join(placeholder for unused in tags)
+	return c.execute('''SELECT api_endpoints.*
+					FROM tagmap, api_endpoints, tags
+					WHERE tags.rowid = tagmap.tag_id
+					AND (tags.tag_name IN (?,?,?))
+					AND api_endpoints.rowid = tagmap.api_id
+					GROUP BY api_endpoints.rowid
+					HAVING COUNT( api_endpoints.rowid )=(?)''', ('weather','temperature','windspeed', len(tags))).fetchall()
 #create_apropos_tables('apis')
+def print_table(table_name):
+	c = conn.cursor()
+	print(c.execute('''SELECT * FROM (?)''', (table_name,)).fetchall())
