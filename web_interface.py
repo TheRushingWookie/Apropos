@@ -53,7 +53,7 @@ def web_register_api():
 		for tag in tags_unicode:
 			tags.append(str(tag))
 		database.add_api_endpoint(api_provider, api_name, provider_key, tags)
-		return str(c.execute('''select * from api_endpoints''').fetchall())
+		return json.dumps({"Status": True})
 	except:
 		return json.dumps({"Status": False})
 

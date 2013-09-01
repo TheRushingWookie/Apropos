@@ -18,4 +18,14 @@ def query(json_query):
 	response = urllib2.urlopen(url)
 	return str(json.loads(str(response.read())))
 
+def register_api(api_provider, api_name, provider_key, tags):
+	# apropros.com/register_api?api_name=...&api_provider=...&provider_key=...&tag=...
+	url = "http://localhost:5000/register_api?"
+	url += "api_name=" + api_name + "&api_provider=" + api_provider + "&provider_key=" + provider_key + ""
+	
+
+
+def register_api_provider():
+
+
 print query(json.dumps({"weather": "null", "zip": 61820, "time": "now"}))
