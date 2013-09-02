@@ -22,11 +22,12 @@ interface = Flask(__name__)
 @interface.route("/query")
 def web_query():
 	try:
-		tags_unicode = list(dict(request.args)["tag"])
-		tags = []
-		for tag in tags_unicode:
-			tags.append(str(tag))
-		return str(database.query_api(tags))
+		return str(request.args)
+		# tags_unicode = list(dict(request.args)["tag"])
+		# tags = []
+		# for tag in tags_unicode:
+		# 	tags.append(str(tag))
+		# return str(database.query_api(tags))
 	except:
 		return json.dumps({"Status": False})
 

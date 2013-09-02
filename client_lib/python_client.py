@@ -6,11 +6,14 @@ import urllib2
 domain_name = "http://localhost:5000/"
 
 def query(json_query):
+	"""
+	json_query is a json dict with values "input" and "output". "input" is a dict of inputs, "output" is a dict of outputs
+	"""
 	url = domain_name + "query?"
 	try:
-		encoded_query = json.quote(json_query)
-	if json_query:
-		url += json_query
+		encoded_query = urllib2.quote(json.dumps(json_query))
+	if encoded_query:
+		url += encoded_query
 	else:
 		return False
 	try:
@@ -19,7 +22,7 @@ def query(json_query):
 		return False
 	if response:
 		return str(json.loads(str(response.read())))
-	else: 
+	else:
 		return False
 
 # apropros.com/register_api?api_name=...&api_provider=...&provider_key=...&tag=...
