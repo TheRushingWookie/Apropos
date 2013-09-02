@@ -8,11 +8,14 @@ def create_apropos_tables (database_name):
 	c.execute('''CREATE TABLE tags ( tag_name text )''')
 	c.execute('''CREATE TABLE tagmap ( tag_id integer, api_id integer)''')
 	c.execute('''CREATE TABLE api_providers (date text, api_provider_name text, email text, owner_key text)''')
+	#FOREIGN KEY(api_provider_id) REFERENCES api_providers(rowid))		
 	c.execute('''CREATE TABLE api_endpoints 
 		(date text, 
 		api_name text,
 		owner_key text,
-		FOREIGN KEY(owner_key) REFERENCES api_providers(owner_key))''')
+		api_provider_id integer,
+		FOREIGN KEY(owner_key) REFERENCES api_providers(owner_key))			
+		''')
 	# Insert a row of data
 	
 	# Save (commit) the changes	
@@ -47,7 +50,7 @@ def add_api_endpoint (api_provider_name, api_name, owner_key,tags):
 		if len(provider_results) > 0:
 			return False
 		else:
-			c.execute('''insert into api_endpoints values (?,?,?)''', (time, api_name, owner_key,))
+			c.execute('''insert into api_endpoints values (?,?,?,?)''', (time, api_name, owner_key,0))
 			api_id = c.lastrowid
 			for tag in tags:
 				prev_tag = c.execute('''select tag_name from tags where tag_name = (?)''', (tag,))
@@ -75,7 +78,14 @@ def query_api(tags):
 					AND api_endpoints.rowid = tagmap.api_id
 					GROUP BY api_endpoints.rowid
 					HAVING COUNT( api_endpoints.rowid )=(?)'''
-	return c.execute(intersect_string, tags + (len(tags),)).fetchall()
+	query_rows = c.execute(intersect_string, tags + (len(tags),))
+	filtered_rows = []
+	for row in query_rows:
+		print(row)
+		filtered_rows.append([row[1]])
+	return filtered_rows
+
+
 #create_apropos_tables('apis')
 def print_table(table_name):
 	c = conn.cursor()
