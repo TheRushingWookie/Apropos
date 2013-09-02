@@ -44,13 +44,15 @@ def register_api_provider (api_provider_name,email):
 
 def add_api_endpoint ( api_name, api_url, owner_key,tags):
 	c = conn.cursor()
+	owner_verified  = c.execute (''' select rowid from api_providers where owner_key = (?) AND api_provider_name = (?)''', (owner_key,api_provider_name,))
+	if len(owner_verified.fetchall()) > 0:
 		time = strftime("%a, %d %b %Y %X +0000", gmtime())
 		provider_results = c.execute ('''Select api_name from api_endpoints where api_name = (?)''', (api_name,)).fetchall()
 		if len(provider_results) > 0:
 			return False
 		else:
 			c.execute('''insert into api_endpoints values (?,?,?,?)''', (time, api_name, owner_key,0))
-			api_id = c.
+			api_id = c.lastrowid
 			for tag in tags:
 				prev_tag = c.execute('''select rowid from tags where tag_name = (?)''', (tag,)).fetchall()
 				if len(prev_tag) > 0:
