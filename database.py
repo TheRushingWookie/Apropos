@@ -12,6 +12,7 @@ def create_apropos_tables (database_name):
 	c.execute('''CREATE TABLE api_endpoints 
 		(date text, 
 		api_name text,
+		api_url text,
 		owner_key text,
 		api_provider_id integer,
 		FOREIGN KEY(owner_key) REFERENCES api_providers(owner_key))			
@@ -41,24 +42,26 @@ def register_api_provider (api_provider_name,email):
 		return None
 #print(register_api_provider("Example_provider", "example@example.com"))
 
-def add_api_endpoint (api_provider_name, api_name, owner_key,tags):
+def add_api_endpoint ( api_name, api_url, owner_key,tags):
 	c = conn.cursor()
-	owner_verified  = c.execute (''' select owner_key,api_provider_name from api_providers where owner_key = (?) AND api_provider_name = (?)''', (owner_key,api_provider_name,))
-	if len(owner_verified.fetchall()) > 0:
 		time = strftime("%a, %d %b %Y %X +0000", gmtime())
 		provider_results = c.execute ('''Select api_name from api_endpoints where api_name = (?)''', (api_name,)).fetchall()
 		if len(provider_results) > 0:
 			return False
 		else:
 			c.execute('''insert into api_endpoints values (?,?,?,?)''', (time, api_name, owner_key,0))
-			api_id = c.lastrowid
+			api_id = c.
 			for tag in tags:
-				prev_tag = c.execute('''select tag_name from tags where tag_name = (?)''', (tag,))
-				if len(prev_tag.fetchall()) > 0:
-					tag_id = prev_tag.fetchone()
+				prev_tag = c.execute('''select rowid from tags where tag_name = (?)''', (tag,)).fetchall()
+				if len(prev_tag) > 0:
+					tag_id = prev_tag[0][0]
+					
 				else:
 					c.execute('''insert into tags values (?)''', (tag,))
+
 					tag_id = c.lastrowid
+					
+
 				c.execute('''insert into tagmap values (?,?)''', (tag_id,api_id))
 			return True
 	else:
@@ -81,7 +84,6 @@ def query_api(tags):
 	query_rows = c.execute(intersect_string, tags + (len(tags),))
 	filtered_rows = []
 	for row in query_rows:
-		print(row)
 		filtered_rows.append([row[1]])
 	return filtered_rows
 
