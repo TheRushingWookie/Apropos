@@ -10,12 +10,23 @@ import urllib2
 # Create flask object
 interface = Flask(__name__)
 
+# def uumd_to_list(umd, key):
+# 	# converts unicode UnmutableMultiDict to a list
+# 	unicode_list = list(dict(uumd)[key])
+# 	list = []
+# 	for item in list:
+# 		list.append(str(item))
+# 	return list
+
 # apropros.com/query
 @interface.route("/query")
 def web_query():
 	try:
-		tags = dict(request.args)
-		return str(request.args)
+		tags_unicode = list(dict(request.args)["tag"])
+		tags = []
+		for tag in tags_unicode:
+			tags.append(str(tag))
+		return str(database.query_api(tags))
 	except:
 		return json.dumps({"Status": False})
 
@@ -44,7 +55,6 @@ def web_register_api_provider():
 @interface.route("/register_api")
 def web_register_api():
 	try:
-		c = database.conn.cursor()
 		api_name = urllib2.unquote(str(list(dict(request.args)["api_name"])[0]))
 		api_provider = str(list(dict(request.args)["api_provider"])[0])
 		provider_key = str(list(dict(request.args)["provider_key"])[0])
@@ -52,8 +62,10 @@ def web_register_api():
 		tags = []
 		for tag in tags_unicode:
 			tags.append(str(tag))
-		database.add_api_endpoint(api_provider, api_name, provider_key, tags)
-		return json.dumps({"Status": True})
+		if database.add_api_endpoint(api_provider, api_name, provider_key, tags):
+			return json.dumps({"Status": True})
+		else:
+			return json.dumps({"Status": False})
 	except:
 		return json.dumps({"Status": False})
 

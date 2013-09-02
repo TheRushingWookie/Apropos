@@ -3,29 +3,49 @@
 import json
 import urllib2
 
+domain_name = "http://localhost:5000/"
+
 def query(json_query):
-	url = "http://localhost:5000/query?"
-	py_dict = json.loads(json_query)
-	fields = [k for k, v in py_dict.items()]
-	values = py_dict.values()
-	dict_tuples = zip(fields, values)
-	if len(fields) == len(values):
-		for i, (field, value) in enumerate(dict_tuples):
-			if i != len(dict_tuples) - 1:
-				url += str(field) + "=" + str(value) + "&"
-			elif i == len(dict_tuples) - 1:
-				url += str(field) + "=" + str(value)
-	response = urllib2.urlopen(url)
-	return str(json.loads(str(response.read())))
+	url = domain_name + "query?"
+	try:
+		encoded_query = json.quote(json_query)
+	if json_query:
+		url += json_query
+	else:
+		return False
+	try:
+		response = urllib2.urlopen(url)
+	except:
+		return False
+	if response:
+		return str(json.loads(str(response.read())))
+	else: 
+		return False
 
+# apropros.com/register_api?api_name=...&api_provider=...&provider_key=...&tag=...
 def register_api(api_provider, api_name, provider_key, tags):
-	# apropros.com/register_api?api_name=...&api_provider=...&provider_key=...&tag=...
-	url = "http://localhost:5000/register_api?"
+	url = domain_name + "register_api?"
 	url += "api_name=" + api_name + "&api_provider=" + api_provider + "&provider_key=" + provider_key + ""
-	
+	try:
+		response = urllib2.urlopen(url)
+	except:
+		return False
+	if response:
+		return True
+	else:
+		return False
 
-
-def register_api_provider():
-
+# apropros.com/register_api_provider?api_provider=...&contact_info=...
+def register_api_provider(api_provider, contact_info):
+	url = domain_name + "register_api_provider?"
+	url += "api_provider=" + api_provider + "&contact_info=" + contact_info
+	try:
+		response = urllib2.urlopen(url)
+	except:
+		return False
+	if response:
+		return True
+	else:
+		return False
 
 print query(json.dumps({"weather": "null", "zip": 61820, "time": "now"}))
