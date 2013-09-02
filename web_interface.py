@@ -3,9 +3,9 @@
 from flask import Flask
 from flask import request
 import json
+import urllib2
 import email_script
 import database
-import urllib2
 
 # Create flask object
 interface = Flask(__name__)
@@ -21,14 +21,20 @@ interface = Flask(__name__)
 # apropros.com/query
 @interface.route("/query")
 def web_query():
-	try:
-		return str(request.args)
-		# tags_unicode = list(dict(request.args)["tag"])
-		# tags = []
-		# for tag in tags_unicode:
-		# 	tags.append(str(tag))
-		# return str(database.query_api(tags))
-	except:
+	immutable_multi_dict = request.args
+	norm_dict = dict(immutable_multi_dict)
+	io_json_list = norm_dict['json']
+	io_json_dict = json.loads(io_json_list[0])
+	input_tags_unicode = io_json_dict["input"].keys()
+	output_tags_unicode = io_json_dict["output"].keys()
+	tags_unicode = input_tags_unicode + output_tags_unicode
+	tags = []
+	for tag in tags_unicode:
+		tags.append(str(tag))
+	apis = database.query_api(tags)
+	if apis:
+		return str(apis)
+	else:
 		return json.dumps({"Status": False})
 
 # apropros.com/register_api_provider?api_provider=...&contact_info=...
@@ -78,6 +84,14 @@ def web_drop_api():
 		return "Delete " + api_name + " from the database"
 	except:
 		return json.dumps({"Status": False})
+
+@interface.route("/commit")
+def commit():
+	c = conn.cursor()
+	
+
+
+
 
 if __name__ == "__main__":
 	interface.run()
