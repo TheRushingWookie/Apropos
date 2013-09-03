@@ -3,7 +3,6 @@
 from flask import Flask
 from flask import request
 import json
-import urllib2
 import email_script
 import database
 
@@ -51,9 +50,8 @@ def web_register_api_provider():
 		contact_info_string = str(dict(request.args)["contact_info"][0])
 		registration_key = database.register_api_provider(api_provider, contact_info_string)
 		if registration_key:
-			# email_script.send_email("13917714j", "3019236Q", "13917714j@gmail.com", contact_info_string, registration_key)
-			# return json.dumps({"Status": True})
-			return str(registration_key)
+			email_script.send_email("13917714j", "3019236Q", "13917714j@gmail.com", contact_info_string, registration_key)
+			return json.dumps({"Status": True})
 		else:
 			return json.dumps({"Status": False})
 	except:
