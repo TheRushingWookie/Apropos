@@ -51,7 +51,7 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key,tags):
 		if len(provider_results) > 0:
 			return False
 		else:
-			c.execute('''insert into api_endpoints values (?,?,?,?)''', (time, api_name, owner_key,0))
+			c.execute('''insert into api_endpoints values (?,?,?,?,?)''', (time, api_name, api_url, owner_key,0))
 			api_id = c.lastrowid
 			for tag in tags:
 				prev_tag = c.execute('''select rowid from tags where tag_name = (?)''', (tag,)).fetchall()

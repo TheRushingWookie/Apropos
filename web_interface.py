@@ -51,25 +51,27 @@ def web_register_api_provider():
 		contact_info_string = str(dict(request.args)["contact_info"][0])
 		registration_key = database.register_api_provider(api_provider, contact_info_string)
 		if registration_key:
-			email_script.send_email("13917714j", "3019236Q", "13917714j@gmail.com", contact_info_string, registration_key)
-			return json.dumps({"Status": True})
+			# email_script.send_email("13917714j", "3019236Q", "13917714j@gmail.com", contact_info_string, registration_key)
+			# return json.dumps({"Status": True})
+			return str(registration_key)
 		else:
 			return json.dumps({"Status": False})
 	except:
 			return json.dumps({"Status": False})
 
-# apropros.com/register_api?api_name=...&api_provider=...&provider_key=...&tag=...
+# apropros.com/register_api?api_provider=...&api_name=...&api_url=...&provider_key=...&tag=...
 @interface.route("/register_api")
 def web_register_api():
 	try:
-		api_name = urllib2.unquote(str(list(dict(request.args)["api_name"])[0]))
 		api_provider = str(list(dict(request.args)["api_provider"])[0])
+		api_name = str(list(dict(request.args)["api_name"])[0])
+		api_url = str(list(dict(request.args)["api_url"])[0])
 		provider_key = str(list(dict(request.args)["provider_key"])[0])
 		tags_unicode = list(dict(request.args)["tag"])
-		tags = []
+		tags = ()
 		for tag in tags_unicode:
 			tags.append(str(tag))
-		if database.add_api_endpoint(api_provider, api_name, provider_key, tags):
+		if database.add_api_endpoint(api_provider, api_name, api_url, provider_key, tags):
 			return json.dumps({"Status": True})
 		else:
 			return json.dumps({"Status": False})
@@ -87,11 +89,7 @@ def web_drop_api():
 
 @interface.route("/commit")
 def commit():
-	c = conn.cursor()
-	
-
-
-
+	database.conn.commit()
 
 if __name__ == "__main__":
 	interface.run()
