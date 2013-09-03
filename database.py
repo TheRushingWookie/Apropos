@@ -42,7 +42,7 @@ def register_api_provider (api_provider_name,email):
 		return None
 #print(register_api_provider("Example_provider", "example@example.com"))
 
-def add_api_endpoint ( api_name, api_url, owner_key,tags):
+def add_api_endpoint (api_provider_name, api_name, api_url, owner_key,tags):
 	c = conn.cursor()
 	owner_verified  = c.execute (''' select rowid from api_providers where owner_key = (?) AND api_provider_name = (?)''', (owner_key,api_provider_name,))
 	if len(owner_verified.fetchall()) > 0:
