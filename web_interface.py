@@ -31,7 +31,7 @@ def web_query():
 	tags = []
 	for tag in tags_unicode:
 		tags.append(str(tag))
-	apis = database.query_api(tags)
+	apis = database.query_api(tuple(tags))
 	if apis:
 		return str(apis)
 	else:
@@ -68,7 +68,7 @@ def web_register_api():
 		api_url = str(list(dict(request.args)["api_url"])[0])
 		provider_key = str(list(dict(request.args)["provider_key"])[0])
 		tags_unicode = list(dict(request.args)["tag"])
-		tags = ()
+		tags = []
 		for tag in tags_unicode:
 			tags.append(str(tag))
 		if database.add_api_endpoint(api_provider, api_name, api_url, provider_key, tags):
