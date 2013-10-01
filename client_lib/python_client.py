@@ -3,7 +3,7 @@
 import json
 import urllib2
 
-domain_name = "http://localhost:5000/"
+domain_name = "http://localhost:8000/"
 
 def query(json_query):
 	"""
@@ -14,14 +14,20 @@ def query(json_query):
 	url = domain_name + "query?json="
 	try:
 		encoded_query = urllib2.quote(json.dumps(json_query))
-	if encoded_query:
-		url += encoded_query
-	else:
-		return False
-	try:
-		response = urllib2.urlopen(url)
+		if encoded_query:
+			url += encoded_query
+		else:
+			return False
+		try:
+			print(url)
+			response = urllib2.urlopen(url)
+
+		except:
+
+			return False
 	except:
 		return False
+		
 	if response:
 		return str(json.loads(str(response.read())))
 	else:
@@ -53,4 +59,4 @@ def register_api_provider(api_provider, contact_info):
 	else:
 		return False
 
-print query(json.dumps({"weather": "null", "zip": 61820, "time": "now"}))
+print query(json.dumps({"action": "weather", "city" : "Fremont,CA"}))

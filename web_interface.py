@@ -4,12 +4,23 @@ from flask import Flask
 from flask import request
 import json
 import urllib2
-import email_script
+import smtplib
+
+
 import database
 
+
+def send_email(user, password, user_address, receiver, message):     
+    # Initialize SMTP server
+    server = smtplib.SMTP('smtp.gmail.com:587')
+    server.starttls()
+    server.login(user, password)
+    
+    # Send email    
+    server.sendmail(user_address, receiver, message)
+    server.quit()
 # Create flask object
 interface = Flask(__name__)
-
 # def uumd_to_list(umd, key):
 # 	# converts unicode UnmutableMultiDict to a list
 # 	unicode_list = list(dict(uumd)[key])

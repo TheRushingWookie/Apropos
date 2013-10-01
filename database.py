@@ -1,7 +1,7 @@
 import sqlite3
 import uuid
 from time import gmtime, strftime
-conn = sqlite3.connect('apis.db')
+conn = sqlite3.connect('/Users/quinnjarrell/Desktop/Apropos/apis.db')
 def create_apropos_tables (database_name):
 	c = conn.cursor()
 	# Create table
@@ -94,3 +94,4 @@ def query_api(tags):
 def print_table(table_name):
 	c = conn.cursor()
 	print(c.execute('''SELECT * FROM (?)''', (table_name,)).fetchall())
+def __init__
