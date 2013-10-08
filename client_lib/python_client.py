@@ -3,7 +3,7 @@
 import json
 import urllib2
 
-domain_name = "http://localhost:8000/"
+domain_name = "http://localhost:5000/"
 
 def query(json_query):
 	"""
@@ -19,7 +19,6 @@ def query(json_query):
 		else:
 			return False
 		try:
-			print(url)
 			response = urllib2.urlopen(url)
 
 		except:
@@ -29,19 +28,21 @@ def query(json_query):
 		return False
 		
 	if response:
-		return str(json.loads(str(response.read())))
+		print "Response is " + response.read()
+		#return str(json.loads(str(response.read())))
 	else:
 		return False
 
 # apropros.com/register_api?api_name=...&api_provider=...&provider_key=...&tag=...
 def register_api(api_provider, api_name, provider_key, tags):
 	url = domain_name + "register_api?"
-	url += "api_name=" + api_name + "&api_provider=" + api_provider + "&provider_key=" + provider_key + ""
+	url += "api_name=" + api_name + "&api_provider=" + api_provider + "&provider_key=" + provider_key + "&tags=" + urllib2.quote(json.dumps(tags))
 	try:
 		response = urllib2.urlopen(url)
 	except:
 		return False
 	if response:
+		print response.read()
 		return True
 	else:
 		return False
@@ -55,8 +56,11 @@ def register_api_provider(api_provider, contact_info):
 	except:
 		return False
 	if response:
+		print response.read()
 		return True
 	else:
 		return False
 
-print query(json.dumps({"action": "weather", "city" : "Fremont,CA"}))
+#register_api_provider('https://127.0.0.1:8000','13917714J@gmail.com')
+#register_api('https://127.0.0.1:8000', 'weather', '064dd4fd-b5c4-4e5c-9cb3-017fcc505032', ['weather','location','temperature','zip','city'])
+query(json.dumps('{"input": {"zip": 61820}, "output": {"temperature": "int"}}'))

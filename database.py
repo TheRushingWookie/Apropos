@@ -3,7 +3,7 @@ import uuid
 from time import gmtime, strftime
 conn = sqlite3.connect('/Users/quinnjarrell/Desktop/Apropos/apis.db')
 def create_apropos_tables (database_name):
-	c = conn.cursor()
+	conn = sqlite3.connect('/Users/quinnjarrell/Desktop/Apropos/apis.db')
 	# Create table
 	c.execute('''CREATE TABLE tags ( tag_name text )''')
 	c.execute('''CREATE TABLE tagmap ( tag_id integer, api_id integer)''')
@@ -37,6 +37,7 @@ def register_api_provider (api_provider_name,email):
 	if not if_provider_exists(api_provider_name,c):
 		provider_key = generate_uuid()
 		c.execute("insert into api_providers values (?, ?, ?, ?)", (time, api_provider_name, email, provider_key))
+		conn.commit()
 		return provider_key
 	else:
 		return None
@@ -51,7 +52,7 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key,tags):
 		if len(provider_results) > 0:
 			return False
 		else:
-			c.execute('''insert into api_endpoints values (?,?,?,?,?)''', (time, api_name, api_url, owner_key,0))
+			c.execute('''insert into api_endpoints values (?,?,?,?)''', (time, api_name, api_url, owner_key))
 			api_id = c.lastrowid
 			for tag in tags:
 				prev_tag = c.execute('''select rowid from tags where tag_name = (?)''', (tag,)).fetchall()
@@ -65,6 +66,7 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key,tags):
 					
 
 				c.execute('''insert into tagmap values (?,?)''', (tag_id,api_id))
+			conn.commit()
 			return True
 	else:
 		return False
@@ -94,4 +96,3 @@ def query_api(tags):
 def print_table(table_name):
 	c = conn.cursor()
 	print(c.execute('''SELECT * FROM (?)''', (table_name,)).fetchall())
-def __init__
