@@ -19,14 +19,13 @@ def query(json_query):
 		else:
 			return False
 		try:
-			response = urllib2.urlopen(url)
-
+			response = urllib2.urlopen(url) # returns list of api proxy urls that match the tags
 		except:
-
 			return False
+	
 	except:
 		return False
-		
+
 	if response:
 		print "Response is " + response.read()
 		#return str(json.loads(str(response.read())))
