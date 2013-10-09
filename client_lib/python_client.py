@@ -33,10 +33,10 @@ def query(json_query):
 	else:
 		return False
 
-# apropros.com/register_api?api_name=...&api_provider=...&provider_key=...&tag=...
-def register_api(api_provider, api_name, provider_key, tags):
+# apropros.com/register_api?api_name=...&api_provider=...&api_url=...&provider_key=...&tag=...
+def register_api(api_provider, api_name, api_url, provider_key, tags):
 	url = domain_name + "register_api?"
-	url += "api_name=" + api_name + "&api_provider=" + api_provider + "&provider_key=" + provider_key + "&tags=" + urllib2.quote(json.dumps(tags))
+	url += "api_name=" + api_name + "&api_provider=" + api_provider + "&provider_key=" + provider_key + "&tags=" + urllib2.quote(json.dumps(tags)) + "&api_url=" + urllib2.quote(api_url)
 	try:
 		response = urllib2.urlopen(url)
 	except:
@@ -63,4 +63,4 @@ def register_api_provider(api_provider, contact_info):
 
 #register_api_provider('https://127.0.0.1:8000','13917714J@gmail.com')
 #register_api('https://127.0.0.1:8000', 'weather', '064dd4fd-b5c4-4e5c-9cb3-017fcc505032', ['weather','location','temperature','zip','city'])
-query(json.dumps('{"input": {"zip": 61820}, "output": {"temperature": "int"}}'))
+# query(json.dumps('{"input": {"zip": 61820}, "output": {"temperature": "int"}}'))

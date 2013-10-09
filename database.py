@@ -1,9 +1,9 @@
 import sqlite3
 import uuid
 from time import gmtime, strftime
-conn = sqlite3.connect('/Users/quinnjarrell/Desktop/Apropos/apis.db')
+conn = sqlite3.connect('/Users/Charles/Documents/GitHub/Apropos/apis.db')
 def create_apropos_tables (database_name):
-	conn = sqlite3.connect('/Users/quinnjarrell/Desktop/Apropos/apis.db')
+	conn = sqlite3.connect('/Users/Charles/Documents/GitHub/Apropos/apis.db')
 	# Create table
 	c.execute('''CREATE TABLE tags ( tag_name text )''')
 	c.execute('''CREATE TABLE tagmap ( tag_id integer, api_id integer)''')

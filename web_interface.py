@@ -6,7 +6,6 @@ import json
 import urllib2
 import smtplib
 import pdb
-
 import database
 
 
@@ -48,8 +47,6 @@ def web_query():
 	output_tags_unicode = io_json_dict["output"].keys()
 	tags_unicode = input_tags_unicode + output_tags_unicode
 	tags = []
-	
-	
 
 	for tag in tags_unicode:
 		tags.append(str(tag))
@@ -91,7 +88,7 @@ def web_register_api():
 		
 		api_provider = param_dict['api_provider'][0]
 		api_name = param_dict['api_name'][0]
-		api_url = api_provider
+		api_url = param_dict['api_url'][0]
 		provider_key = param_dict['provider_key'][0]
 
 		tags_unicode = json.loads(param_dict['tags'][0])
