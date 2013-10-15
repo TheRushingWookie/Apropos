@@ -6,6 +6,7 @@ import json
 import urllib2
 import smtplib
 import pdb
+import unicodedata
 import database
 
 
@@ -41,17 +42,20 @@ def web_query():
 	io_json_dict = json.loads(io_json_list[0])
 	io_json_dict = json.loads(io_json_dict)
 	io_json_dict = json.loads(io_json_dict)
-	
-	input_tags_unicode = io_json_dict["input"].keys()
 
+	action_unicode = io_json_dict["action"].keys()
+	input_tags_unicode = io_json_dict["input"].keys()
 	output_tags_unicode = io_json_dict["output"].keys()
+
 	tags_unicode = input_tags_unicode + output_tags_unicode
 	tags = []
 
 	for tag in tags_unicode:
 		tags.append(str(tag))
-		
-	apis = database.query_api(tuple(tags))
+	
+	action = unicodedata.normalize(action_unicode, title).encode('ascii','ignore')
+
+	apis = database.query_api(action, tuple(tags))
 
 	if apis:
 		return str(apis)
