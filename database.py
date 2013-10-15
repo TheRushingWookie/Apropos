@@ -1,19 +1,24 @@
 import sqlite3
 import uuid
 from time import gmtime, strftime
-conn = sqlite3.connect('/Users/Charles/Documents/GitHub/Apropos/apis.db')
+import os
+dir = os.path.split(os.path.abspath(__file__))[0]
+conn = sqlite3.connect(dir + '/API.db')
+
 def create_apropos_tables (database_name):
-	conn = sqlite3.connect('/Users/Charles/Documents/GitHub/Apropos/apis.db')
+	conn = sqlite3.connect(dir + database_name)
 	# Create table
+	c = conn.cursor()
 	c.execute('''CREATE TABLE tags ( tag_name text )''')
 	c.execute('''CREATE TABLE tagmap ( tag_id integer, api_id integer)''')
 	c.execute('''CREATE TABLE api_providers (date text, api_provider_name text, email text, owner_key text)''')
 	#FOREIGN KEY(api_provider_id) REFERENCES api_providers(rowid))		
-	c.execute('''CREATE TABLE api_endpoints 
+	c.execute('''CREATE TABLE api_endpoints
 		(date text, 
 		api_name text,
 		api_url text,
 		owner_key text,
+		category text,
 		api_provider_id integer,
 		FOREIGN KEY(owner_key) REFERENCES api_providers(owner_key))			
 		''')
@@ -23,6 +28,7 @@ def create_apropos_tables (database_name):
 	conn.commit()
 	# We can also close the connection if we are done with it.
 	# Just be sure any changes have been committed or they will be lost.
+#create_apropos_tables('database')
 def generate_uuid ():
 	return str(uuid.uuid4())
 def if_provider_exists (provider_name,c):
@@ -43,7 +49,7 @@ def register_api_provider (api_provider_name,email):
 		return None
 #print(register_api_provider("Example_provider", "example@example.com"))
 
-def add_api_endpoint (api_provider_name, api_name, api_url, owner_key,tags):
+def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category, tags):
 	c = conn.cursor()
 	owner_verified  = c.execute (''' select rowid from api_providers where owner_key = (?) AND api_provider_name = (?)''', (owner_key,api_provider_name,))
 	if len(owner_verified.fetchall()) > 0:
@@ -52,7 +58,7 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key,tags):
 		if len(provider_results) > 0:
 			return False
 		else:
-			c.execute('''insert into api_endpoints values (?,?,?,?)''', (time, api_name, api_url, owner_key))
+			c.execute('''insert into api_endpoints values (?,?,?,?,?,?)''', (time, api_name, api_url, owner_key, category,str(provider_results)))
 			api_id = c.lastrowid
 			for tag in tags:
 				prev_tag = c.execute('''select rowid from tags where tag_name = (?)''', (tag,)).fetchall()
@@ -70,27 +76,29 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key,tags):
 			return True
 	else:
 		return False
-'''
-id_example = register_api_provider("Example_provider", "example@example.com")
-add_api_endpoint("Example_provider", "test_api" , id_example ,("weather","temperature","windspeed"))'''			
 
-def query_api(tags):
+id_example = 'c534bb1c-4dd1-4ab1-9129-2073c14efc9a'
+#add_api_endpoint("Example_provider", "test_api" ,'http://localhost:8000/query' ,id_example ,'weather',("weather","temperature","windspeed"))
+
+def query_api(category,tags ):
 	c = conn.cursor()
 	placeholder= '?' # For SQLite. See DBAPI paramstyle.
 	placeholders= ', '.join(placeholder for unused in tags)
+	print c.execute('''SELECT api_endpoints.* FROM api_endpoints''').fetchall()
 	intersect_string = '''SELECT api_endpoints.*
 					FROM tagmap, api_endpoints, tags
 					WHERE tags.rowid = tagmap.tag_id
+					AND api_endpoints.category = (?)
 					AND (tags.tag_name IN (''' + placeholders + '''))
 					AND api_endpoints.rowid = tagmap.api_id
 					GROUP BY api_endpoints.rowid
 					HAVING COUNT( api_endpoints.rowid )=(?)'''
-	query_rows = c.execute(intersect_string, tags + (len(tags),))
+	query_rows = c.execute(intersect_string, (category,) + tags + (len(tags),))
 	filtered_rows = []
 	for row in query_rows:
 		filtered_rows.append([row[1]])
 	return filtered_rows
-
+#print (query_api('weather',('weather','temperature'),))
 
 #create_apropos_tables('apis')
 def print_table(table_name):
