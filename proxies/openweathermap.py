@@ -20,41 +20,24 @@ class openweathermap(proxy.proxy):
 
 		self.json_output = urllib2.urlopen(base_url).read()
 		
-		return json_output
+		return self.json_output
 	def init_outputs(self):
 		return {'temperature' : self.output_temperature,
 				'pressure' : self.output_pressure,
 				'windspeed' : self.output_windspeed}
-	def output_temperature(self,json_output,val_type):
-		temp =  self.json_output['main']['temp']
+	def output_temperature(self,json_output):
+		temp =  json_output['main']['temp']
 		temp = self.convert_kelvin_to_fahrenheit(temp)
-		print val_type
-		if val_type == 'int':
-			return int(temp)
-		elif val_type == 'string':
-			return str(temp)
-		elif val_type == 'float':
-			return float(temp)
-	def output_pressure(self,json_output,val_type):
-		temp =  self.json_output['main']['pressure']
+		return temp
 		
-		print val_type
-		if val_type == 'int':
-			return int(temp)
-		elif val_type == 'string':
-			return str(temp)
-		elif val_type == 'float':
-			return float(temp)
-	def output_windspeed(self,json_output,val_type):
-		temp =  self.json_output['wind']['speed']
+	def output_pressure(self,json_output):
+		temp =  json_output['main']['pressure']
+		return temp
 		
-		print val_type
-		if val_type == 'int':
-			return int(temp)
-		elif val_type == 'string':
-			return str(temp)
-		elif val_type == 'float':
-			return float(temp)
+	def output_windspeed(self,json_output):
+		temp =  json_output['wind']['speed']
+		return temp
+		
 
 	#print get_weather({'city':'Bethesda, MD'})
 	def convert_kelvin_to_fahrenheit(self,Kelvin_temp):
