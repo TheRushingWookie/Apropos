@@ -88,7 +88,8 @@ def run_proxy(proxy_name):
 	except AttributeError:
 		print 'function not found ' + "init_actions"
 if __name__ == "__main__":
-	'''proxy_instance = run_proxy('openweathermap')
+	proxy_instance = run_proxy('openweathermap')
+	'''
 	print proxy_instance.filter_outputs(json.loads('{"output": {"temperature": "string","pressure":"string", "windspeed":"int"}}'),json.loads"""{
     "coord": {
         "lon": -77.0969,
