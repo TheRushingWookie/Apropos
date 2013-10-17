@@ -5,30 +5,30 @@ import urllib2
 
 domain_name = "http://localhost:5000/"
 
-def query(json_query):
+def query(query):
 	"""
 	json_query is a json dict with keys "input" and "output". The "input" value is a dict of inputs with keys as tags and values as the values of the tag, i.e. "zip": 61820. The "output" value is a dict of outputs with keys as the requested output (and also serves as a tag) and values as return types, i.e. "hour": "int". 
 	Example:
-	json_query = {"input": {"zip": 61820, "day": "tuesday"}, "output": {"temperature": "int"}}
+	json_query = {"action": "weather", "input": {"weather": 94539}, "output": {"temperature": "int"}}
 	"""
-	url = domain_name + "query?json="
-	try:
-		encoded_query = urllib2.quote(json.dumps(json_query))
-		if encoded_query:
-			url += encoded_query
-		else:
-			return False
-		try:
-			response = urllib2.urlopen(url) # returns list of api proxy urls that match the tags
-		except:
-			return False
-	
-	except:
-		return False
+	url = domain_name + "query?action="
+	input_url = ""
+	output_url = ""
+	action = query["action"]	
+
+	inputs = query["input"].keys()
+	for input_ in inputs:
+		input_url += "&input=" + urllib2.quote(input_)
+
+	outputs = query["output"].keys()
+	for output_ in outputs:
+		output_url += "&output=" + urllib2.quote(output_)
+
+	url += action + input_url + output_url
+	response = urllib2.urlopen(url)
 
 	if response:
 		print "Response is " + response.read()
-		#return str(json.loads(str(response.read())))
 	else:
 		return False
 

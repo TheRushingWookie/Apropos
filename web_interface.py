@@ -37,8 +37,10 @@ interface = Flask(__name__)
 def web_query():
     immutable_multi_dict = request.args
     norm_dict = dict(immutable_multi_dict)
+    print norm_dict
     action = norm_dict["action"][0]
     tags = tuple(str(_) for _ in norm_dict["input"] + norm_dict["output"])
+    print tags
 
     apis = database.query_api(action, tuple(tags))
 
