@@ -28,7 +28,14 @@ def query(query):
 	response = urllib2.urlopen(url)
 
 	if response:
-		print "Response is " + response.read()
+		response = response.read()
+		response =  urllib2.unquote(response)
+		response = json.loads(response)
+		print "Response is " + str(response['apis'][0][0])
+		url = response['apis'][0][0] + "?json=" + urllib2.quote(json.dumps(query))
+		print url
+		response = urllib2.urlopen(url).read()
+		print response
 	else:
 		return False
 
@@ -62,4 +69,4 @@ def register_api_provider(api_provider, contact_info):
 
 #register_api_provider('https://127.0.0.1:8000','13917714J@gmail.com')
 #register_api('https://127.0.0.1:8000', 'weather', '064dd4fd-b5c4-4e5c-9cb3-017fcc505032', ['weather','location','temperature','zip','city'])
-# query(json.dumps('{"input": {"zip": 61820}, "output": {"temperature": "int"}}'))
+query(json.loads('{"action": "weather", "input": {"city": "Urbana"}, "output": {"pressure": "int", "windspeed" : "float", "temperature" : "int"}}'))

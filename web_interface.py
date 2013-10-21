@@ -42,10 +42,10 @@ def web_query():
     tags = tuple(str(_) for _ in norm_dict["input"] + norm_dict["output"])
     print tags
 
-    apis = database.query_api(action, tuple(tags))
-
+    apis = {'apis': database.query_api(action, tuple(tags))}
+    print "apis is " + str(apis)
     if apis:
-        return str(apis)
+        return urllib2.quote(json.dumps(apis))
     else:
         return json.dumps({"Status": False})
 

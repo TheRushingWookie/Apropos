@@ -78,13 +78,13 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category,
 		return False
 
 id_example = 'c534bb1c-4dd1-4ab1-9129-2073c14efc9a'
-#add_api_endpoint("Example_provider", "test_api" ,'http://localhost:8000/query' ,id_example ,'weather',("weather","temperature","windspeed"))
+#add_api_endpoint("Example_provider", "test_api3" ,'http://localhost:8000/query' ,id_example ,'weather',("weather","temperature","windspeed","city","latitude","longitude","pressure"))
 
 def query_api(category,tags ):
 	c = conn.cursor()
 	placeholder= '?' # For SQLite. See DBAPI paramstyle.
 	placeholders= ', '.join(placeholder for unused in tags)
-	print c.execute('''SELECT api_endpoints.* FROM api_endpoints''').fetchall()
+	print c.execute('''SELECT * FROM api_endpoints''').fetchall()
 	intersect_string = '''SELECT api_endpoints.*
 					FROM tagmap, api_endpoints, tags
 					WHERE tags.rowid = tagmap.tag_id
@@ -96,9 +96,10 @@ def query_api(category,tags ):
 	query_rows = c.execute(intersect_string, (category,) + tags + (len(tags),))
 	filtered_rows = []
 	for row in query_rows:
-		filtered_rows.append([row[1]])
+		print row
+		filtered_rows.append([row[2]])
 	return filtered_rows
-#print (query_api('weather',('weather','temperature'),))
+print ( " got "  + str(query_api('weather',('latitude',),)[0][0]))
 
 #create_apropos_tables('apis')
 def print_table(table_name):
