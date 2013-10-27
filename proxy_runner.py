@@ -29,7 +29,7 @@ instance = run_proxy('openweathermap')
 @instance.interface.route("/query")
 def query():
 	immutable_multi_dict = request.args
-	print "WBFJWEFBWJBFJBWFBWJFBWBFW"
+
 	norm_dict = dict(immutable_multi_dict)
 
 	

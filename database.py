@@ -6,13 +6,15 @@ dir = os.path.split(os.path.abspath(__file__))[0]
 conn = sqlite3.connect(dir + '/API.db')
 
 def create_apropos_tables (database_name):
-	conn = sqlite3.connect(dir + database_name)
+	#conn = sqlite3.connect(dir + database_name)
 	# Create table
 	c = conn.cursor()
 	c.execute('''CREATE TABLE tags ( tag_name text )''')
 	c.execute('''CREATE TABLE tagmap ( tag_id integer, api_id integer)''')
+	
+	
 	c.execute('''CREATE TABLE api_providers (date text, api_provider_name text, email text, owner_key text)''')
-	#FOREIGN KEY(api_provider_id) REFERENCES api_providers(rowid))		
+	
 	c.execute('''CREATE TABLE api_endpoints
 		(date text, 
 		api_name text,
@@ -22,6 +24,7 @@ def create_apropos_tables (database_name):
 		api_provider_id integer,
 		FOREIGN KEY(owner_key) REFERENCES api_providers(owner_key))			
 		''')
+	c.execute('''CREATE TABLE api_keys (date text,  key_name text , api_endpoint_id integer, FOREIGN KEY(api_endpoint_id) REFERENCES api_endpoints(rowid))''')
 	# Insert a row of data
 	
 	# Save (commit) the changes	
@@ -48,7 +51,24 @@ def register_api_provider (api_provider_name,email):
 	else:
 		return None
 #print(register_api_provider("Example_provider", "example@example.com"))
+def add_api_key (api_provider_name, api_endpoint_name, owner_key, key_name):
+	c = conn.cursor()
+	owner_verified  = c.execute (''' select rowid from api_providers where owner_key = (?) AND api_provider_name = (?)''', (owner_key,api_provider_name,))
+	if len(owner_verified.fetchall()) > 0:
+		endpoint = c.execute (''' select rowid from api_endpoints where api_name = (?) AND owner_key = (?)''', (api_endpoint_name,owner_key)).fetchall()[0][0]
+		time = strftime("%a, %d %b %Y %X +0000", gmtime())
+		#print "key is "  + str(endpoint)
+		provider_results = c.execute ('''Select key_name, api_endpoint_id from api_keys where key_name = (?) and api_endpoint_id = (?)''', (key_name, endpoint)).fetchall()
+		if len(provider_results) > 0:
+			return False
+		else:
 
+			c.execute('''insert into api_keys values (?,?,?)''', (time, key_name, endpoint))
+
+def print_table(table_name):
+	c = conn.cursor()
+	results = c.execute('''select * from ''' + table_name ).fetchall()
+	print results
 def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category, tags):
 	c = conn.cursor()
 	owner_verified  = c.execute (''' select rowid from api_providers where owner_key = (?) AND api_provider_name = (?)''', (owner_key,api_provider_name,))
@@ -76,10 +96,15 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category,
 			return True
 	else:
 		return False
-
-id_example = 'c534bb1c-4dd1-4ab1-9129-2073c14efc9a'
-#add_api_endpoint("Example_provider", "test_api3" ,'http://localhost:8000/query' ,id_example ,'weather',("weather","temperature","windspeed","city","latitude","longitude","pressure"))
-
+test_api_id = ""
+def create_test_db ():
+	global test_api_id
+	create_apropos_tables('apis')
+	test_api_id = register_api_provider("Example_provider", "example@example.com")
+	#print print_table("api_endpoints")
+	add_api_endpoint("Example_provider", "test_api3" ,'http://localhost:8000/query' ,test_api_id ,'weather',("weather","temperature","windspeed","city","latitude","longitude","pressure"))
+	add_api_key("Example_provider","test_api3",test_api_id,"1239123")
+#create_test_db()
 def query_api(category,tags ):
 	c = conn.cursor()
 	placeholder= '?' # For SQLite. See DBAPI paramstyle.
@@ -99,9 +124,9 @@ def query_api(category,tags ):
 		print row
 		filtered_rows.append([row[2]])
 	return filtered_rows
-print ( " got "  + str(query_api('weather',('latitude',),)[0][0]))
+#print ( " got "  + str(query_api('weather',('latitude',),)[0][0]))
 
-#create_apropos_tables('apis')
+
 def print_table(table_name):
 	c = conn.cursor()
 	print(c.execute('''SELECT * FROM (?)''', (table_name,)).fetchall())

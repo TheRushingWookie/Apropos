@@ -25,6 +25,9 @@ class proxy():
 			return str(val)
 		elif val_type == 'float':
 			return float(val)
+		return val
+	def custom_type_converter(self,val,val_type):
+		return None
 	def filter_outputs (self,json_input,output):
 		filtered_json = {}
 		
@@ -37,6 +40,7 @@ class proxy():
 				converted_val = funct(output)
 
 				filtered_json[i] = self.standard_type_converter(converted_val,json_input['output'][i])
+				filtered_json[i] = self.custom_type_converter(converted_val,json_input['output'][i])
 			except Exception,e:
 				print str(e)
 				return str(traceback.format_exc())

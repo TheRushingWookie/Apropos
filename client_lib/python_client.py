@@ -69,4 +69,4 @@ def register_api_provider(api_provider, contact_info):
 
 #register_api_provider('https://127.0.0.1:8000','13917714J@gmail.com')
 #register_api('https://127.0.0.1:8000', 'weather', '064dd4fd-b5c4-4e5c-9cb3-017fcc505032', ['weather','location','temperature','zip','city'])
-query(json.loads('{"action": "weather", "input": {"city": "Urbana"}, "output": {"pressure": "int", "windspeed" : "float", "temperature" : "int"}}'))
+query(json.loads('{"action": "weather", "input": {"city": "Urbana"}, "output": {"pressure": "atm", "windspeed" : "float", "temperature" : "int"}}'))

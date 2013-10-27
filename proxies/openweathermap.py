@@ -39,7 +39,7 @@ class openweathermap(proxy.proxy):
 	def output_windspeed(self,json_output):
 		temp =  json_output['wind']['speed']
 		return temp
-		
+			
 
 	#print get_weather({'city':'Bethesda, MD'})
 	def convert_kelvin_to_fahrenheit(self,Kelvin_temp):
