@@ -69,6 +69,7 @@ def print_table(table_name):
 	c = conn.cursor()
 	results = c.execute('''select * from ''' + table_name ).fetchall()
 	print results
+
 def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category, tags):
 	c = conn.cursor()
 	owner_verified  = c.execute (''' select rowid from api_providers where owner_key = (?) AND api_provider_name = (?)''', (owner_key,api_provider_name,))
@@ -102,14 +103,17 @@ def create_test_db ():
 	create_apropos_tables('apis')
 	test_api_id = register_api_provider("Example_provider", "example@example.com")
 	#print print_table("api_endpoints")
-	add_api_endpoint("Example_provider", "test_api3" ,'http://localhost:8000/query' ,test_api_id ,'weather',("weather","temperature","windspeed","city","latitude","longitude","pressure"))
+	add_api_endpoint("Example_provider", "test_api3" ,'http://localhost:8000/query' ,test_api_id ,'weather',('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'))
+	add_api_endpoint("Example_provider", "YahooStocks" ,'http://localhost:8000/query' ,test_api_id ,'stocks',('stock_symbols','Two Hundred day Moving Average', 'Days High', 'Price To Sales Ratio', 'Last Trade Date', 'Book Value', 'Percent Change From Year High', 'Previous Close Price', 'asking price', 'Fifty day Moving Average', 'Days Low', 'Symbol', 'Change From Year High', 'Stock Name', 'Year High', 'Stock Exchange', 'Price Earning Growth Ratio', 'EBITDA', 'Change From Fifty day Moving Average', 'Average Daily Volume', 'Percent Change From Fifty day Moving Average', 'Last Trade Time', 'Year Low', 'Bid', 'Price To Book Ratio', 'Percent Change From Two Hundred day Moving Average', 'Open Price', 'Volume', 'Percent Change From Year Low', 'Short Ratio', 'Change From Year Low', 'Price Earnings Ratio', 'Change From Two Hundred day Moving Average', 'Year Range', 'Market Capitalization'))
 	add_api_key("Example_provider","test_api3",test_api_id,"1239123")
+	add_api_key("Example_provider","test_api3",test_api_id,"1239123")
+	print_table('api_endpoints')
 #create_test_db()
 def query_api(category,tags ):
 	c = conn.cursor()
 	placeholder= '?' # For SQLite. See DBAPI paramstyle.
 	placeholders= ', '.join(placeholder for unused in tags)
-	print c.execute('''SELECT * FROM api_endpoints''').fetchall()
+
 	intersect_string = '''SELECT api_endpoints.*
 					FROM tagmap, api_endpoints, tags
 					WHERE tags.rowid = tagmap.tag_id
@@ -120,13 +124,9 @@ def query_api(category,tags ):
 					HAVING COUNT( api_endpoints.rowid )=(?)'''
 	query_rows = c.execute(intersect_string, (category,) + tags + (len(tags),))
 	filtered_rows = []
+
 	for row in query_rows:
-		print row
+		print "got " + str(row)
 		filtered_rows.append([row[2]])
 	return filtered_rows
-#print ( " got "  + str(query_api('weather',('latitude',),)[0][0]))
-
-
-def print_table(table_name):
-	c = conn.cursor()
-	print(c.execute('''SELECT * FROM (?)''', (table_name,)).fetchall())
+print ( " got a"  + str(query_api('weather',('humidsity',))))

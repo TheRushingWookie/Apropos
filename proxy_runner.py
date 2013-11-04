@@ -19,12 +19,11 @@ def run_proxy(proxy_name):
 		proxy_instance = getattr(mod, proxy_name)()
 		print proxy_instance.actions
 		
-
+        
 		return proxy_instance
 	except AttributeError:
 		print 'function not found ' + "init_actions"
 instance = run_proxy('openweathermap')
-
 
 @instance.interface.route("/query")
 def query():

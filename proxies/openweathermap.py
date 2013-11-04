@@ -2,9 +2,10 @@ import json
 import urllib2
 import sys
 import proxy
-def test2():
-	print "helo"
 class openweathermap(proxy.proxy):
+	json_output_name_map = {'temperature': 'temp', 'current_temperature' : 'temp', 'current temperature' : 'temp','max_temp' : 'temp_max','min_temp' : 'temp_min','humidity' : 'humidity', 'pressure':'pressure', 'speed' : 'speed', 'wind_direction' : 'deg', 'cloudiness' : 'cloudiness'}
+							
+	json_name_to_path_map = {'temp': ['main', 'temp'], 'temp_max': ['main', 'temp_max'], 'humidity': ['main', 'humidity'], 'pressure': ['main', 'pressure'], 'temp_min': ['main', 'temp_min'], 'cloudiness': ['clouds', 'all'], 'speed': ['wind', 'speed'], 'deg': ['wind', 'deg']}
 	def __init__ (self):
 		self.actions = self.init_actions()
 		self.json_outputs = self.init_outputs()
@@ -17,28 +18,11 @@ class openweathermap(proxy.proxy):
 		elif 'latitude' in json_input and 'longitude' in json_input['input']:
 			base_url += 'lat=' + json_input['input'][latitude] + '&lon=' + json_input['input'][longitude]
 		
-
-
-		self.json_output = urllib2.urlopen(base_url).read()
+		req = urllib2.Request(base_url)
+		req.add_unredirected_header('User-Agent', 'Custom User-Agent')
+		json_output = urllib2.urlopen(req).read()
 		
-		return self.json_output
-	def init_outputs(self):
-		return {'temperature' : self.output_temperature,
-				'pressure' : self.output_pressure,
-				'windspeed' : self.output_windspeed}
-	def output_temperature(self,json_output):
-		temp =  json_output['main']['temp']
-		print temp
-		temp = self.convert_kelvin_to_fahrenheit(temp)
-		return temp
-		
-	def output_pressure(self,json_output):
-		temp =  json_output['main']['pressure']
-		return temp
-		
-	def output_windspeed(self,json_output):
-		temp =  json_output['wind']['speed']
-		return temp
+		return json_output
 			
 
 	#print get_weather({'city':'Bethesda, MD'})
