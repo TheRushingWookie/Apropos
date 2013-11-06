@@ -23,7 +23,7 @@ def run_proxy(proxy_name):
 		return proxy_instance
 	except AttributeError:
 		print 'function not found ' + "init_actions"
-instance = run_proxy('openweathermap')
+instance = run_proxy('WebServiceXStockQuotes')
 
 @instance.interface.route("/query")
 def query():
@@ -46,8 +46,8 @@ def query():
 		funct = instance.actions[action]
 
 		print str(funct)
-		raw_output =  funct(io_json_dict)
-		return instance.filter_outputs(io_json_dict,json.loads(raw_output))
+		json_output =  funct(io_json_dict)
+		return instance.filter_outputs(io_json_dict,json_output)
 	return "hello"	
 if __name__ == "__main__":
 	

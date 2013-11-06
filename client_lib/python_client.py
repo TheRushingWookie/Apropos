@@ -34,13 +34,16 @@ def query(query):
 		response = json.loads(response)
 		print response
 		print "Response is " + str(response['apis'][0][0])
-		url = response['apis'][0][0] + "?json=" + urllib2.quote(json.dumps(query))
-		print url
-		response = urllib2.urlopen(url).read()
-		print response
+		url = response['apis'][0][0]
+		query_proxy(url,query)
 	else:
 		return False
 
+def query_proxy(url,query):
+	url +=  "?json=" + urllib2.quote(json.dumps(query))
+	print url
+	response = urllib2.urlopen(url).read()
+	print response
 # apropros.com/register_api?api_name=...&api_provider=...&api_url=...&provider_key=...&tag=...
 def register_api(api_provider, api_name, api_url, provider_key, tags):
 	url = domain_name + "register_api?"
@@ -54,7 +57,6 @@ def register_api(api_provider, api_name, api_url, provider_key, tags):
 		return True
 	else:
 		return False
-
 # apropros.com/register_api_provider?api_provider=...&contact_info=...
 def register_api_provider(api_provider, contact_info):
 	url = domain_name + "register_api_provider?"
@@ -71,4 +73,4 @@ def register_api_provider(api_provider, contact_info):
 
 #register_api_provider('https://127.0.0.1:8000','13917714J@gmail.com')
 #register_api('https://127.0.0.1:8000', 'weather', '064dd4fd-b5c4-4e5c-9cb3-017fcc505032', ['weather','location','temperature','zip','city'])
-query(json.loads('{"action": "weather", "input": {"city": "Bethesda"}, "output": {"wind_direction": "int"}}'))
+query_proxy('http://127.0.0.1:8000/query' ,json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float"}}'))
