@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import json
+import urllib
 import urllib2
 
 domain_name = "http://localhost:5000/"
@@ -11,35 +12,41 @@ def query(query):
 	Example:
 	json_query = {"action": "weather", "input": {"weather": 94539}, "output": {"temperature": "int"}}
 	"""
-	url = domain_name + "query?action="
-	input_url = ""
-	output_url = ""
-	action = query["action"]	
+	data = urllib.urlencode(query)
+	req = urllib2.Request(domain_name + "query?action=", data)
+	response = urllib2.urlopen(req)
+	# response = response.read()
 
-	inputs = query["input"].keys()
-	for input_ in inputs:
-		input_url += "&input=" + urllib2.quote(input_)
+	# url = domain_name + "query?action="
+	# input_url = ""
+	# output_url = ""
+	# action = query["action"]	
 
-	outputs = query["output"].keys()
-	for output_ in outputs:
-		output_url += "&output=" + urllib2.quote(output_)
+	# inputs = query["input"].keys()
+	# for input_ in inputs:
+	# 	input_url += "&input=" + urllib2.quote(input_)
 
-	url += action + input_url + output_url
-	print url
-	response = urllib2.urlopen(url)
+	# outputs = query["output"].keys()
+	# for output_ in outputs:
+	# 	output_url += "&output=" + urllib2.quote(output_)
+
+	# url += action + input_url + output_url
+	# print url
+	# response = urllib2.urlopen(url)
 
 	if response:
 		response = response.read()
 		response =  urllib2.unquote(response)
 		response = json.loads(response)
-		print response
-		print "Response is " + str(response['apis'][0][0])
-		url = response['apis'][0][0]
-		query_proxy(url,query)
+		print "FUCK" + str(response[])
+		# print "Response is " + str(response['apis'][0][0])
+		# url = response['apis'][0][0]
+		# query_proxy(url,query)
 	else:
 		return False
 
 def query_proxy(url,query):
+	url = "http://127.0.0.1:8000/query"
 	url +=  "?json=" + urllib2.quote(json.dumps(query))
 	print url
 	response = urllib2.urlopen(url).read()
@@ -73,5 +80,4 @@ def register_api_provider(api_provider, contact_info):
 
 #register_api_provider('https://127.0.0.1:8000','13917714J@gmail.com')
 #register_api('https://127.0.0.1:8000', 'weather', '064dd4fd-b5c4-4e5c-9cb3-017fcc505032', ['weather','location','temperature','zip','city'])
-#query_proxy('http://127.0.0.1:8000/query' ,json.loads('{"action": "stocks", "input": {"stock_symbol": "TWTR"}, "output": {"Last Trade Price": "float"}}'))
-query(json.loads('{"action": "stocks", "input": {"stock_symbol": "TWTR"}, "output": {"Volume": "float"}}'))
+query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float"}}'))

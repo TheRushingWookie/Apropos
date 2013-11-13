@@ -33,21 +33,22 @@ interface = Flask(__name__)
 
 # apropros.com/query?action=...&input=...&output=
 # example: localhost:5000/query?action=weather&input=weather&output=temperature
-@interface.route("/query")
+@interface.route("/query", methods=["POST"])
 def web_query():
-    immutable_multi_dict = request.args
-    norm_dict = dict(immutable_multi_dict)
-    print norm_dict
-    action = norm_dict["action"][0]
-    tags = tuple(str(_) for _ in norm_dict["input"] + norm_dict["output"])
-    print "action " + action
-    print "tags" + str(tags)
-    apis = {'apis': database.query_api(action, tags)}
-    print "apis is " + str(apis)
-    if apis:
-        return urllib2.quote(json.dumps(apis))
-    else:
-        return json.dumps({"Status": False})
+    if request.method == "POST":
+        immutable_multi_dict = request.form
+        norm_dict = dict(immutable_multi_dict)
+        print norm_dict
+        action = norm_dict["action"][0]
+        tags = tuple(str(_) for _ in norm_dict["input"] + norm_dict["output"])
+        print tags
+
+        apis = {'apis': database.query_api(action, tuple(tags))}
+        print "apis is " + str(apis)
+        if apis:
+            return urllib2.quote(json.dumps(apis))
+        else:
+            return json.dumps({"Status": False})
 
 # apropros.com/register_api_provider?api_provider=...&contact_info=...
 @interface.route("/register_api_provider")
