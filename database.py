@@ -108,7 +108,7 @@ def create_test_db ():
 	add_api_key("Example_provider","test_api3",test_api_id,"1239123")
 	add_api_key("Example_provider","test_api3",test_api_id,"1239123")
 	print_table('api_endpoints')
-#create_test_db()
+# create_test_db()
 def query_api(category,tags ):
 	c = conn.cursor()
 	placeholder= '?' # For SQLite. See DBAPI paramstyle.

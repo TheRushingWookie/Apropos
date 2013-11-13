@@ -13,40 +13,21 @@ def query(query):
 	json_query = {"action": "weather", "input": {"weather": 94539}, "output": {"temperature": "int"}}
 	"""
 	data = urllib.urlencode(query)
-	req = urllib2.Request(domain_name + "query?action=", data)
+	req = urllib2.Request(domain_name + "query?", data)
 	response = urllib2.urlopen(req)
-	# response = response.read()
-
-	# url = domain_name + "query?action="
-	# input_url = ""
-	# output_url = ""
-	# action = query["action"]	
-
-	# inputs = query["input"].keys()
-	# for input_ in inputs:
-	# 	input_url += "&input=" + urllib2.quote(input_)
-
-	# outputs = query["output"].keys()
-	# for output_ in outputs:
-	# 	output_url += "&output=" + urllib2.quote(output_)
-
-	# url += action + input_url + output_url
-	# print url
-	# response = urllib2.urlopen(url)
 
 	if response:
 		response = response.read()
-		response =  urllib2.unquote(response)
+		response = urllib2.unquote(response)
 		response = json.loads(response)
-		print "FUCK" + str(response[])
-		# print "Response is " + str(response['apis'][0][0])
-		# url = response['apis'][0][0]
-		# query_proxy(url,query)
+		print response
+		url = response['apis'][0][0]
+		print url
+		query_proxy(url, query)
 	else:
 		return False
 
 def query_proxy(url,query):
-	url = "http://127.0.0.1:8000/query"
 	url +=  "?json=" + urllib2.quote(json.dumps(query))
 	print url
 	response = urllib2.urlopen(url).read()
