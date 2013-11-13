@@ -17,6 +17,9 @@ class proxy():
 	json_output_name_map = {} # This converts a input name to the api specific name. temperature -> current_temperature
 	json_name_to_path_map = {} #converts api_specific name to the appropriate path within the output json. 
 
+	def __init__ (self):
+		self.actions = self.init_actions()
+		self.json_outputs = self.init_outputs()
 	def standard_type_converter(self,val,val_type):
 		'''Converts all standard types such as integer, string'''
 		val_type = val_type.lower()

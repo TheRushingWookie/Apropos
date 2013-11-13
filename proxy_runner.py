@@ -43,7 +43,7 @@ def query():
 	print action
 	if action:
 		print(str(instance.actions))
-		funct = instance.actions[action]
+		funct = instance.actions[str(action)]
 
 		print str(funct)
 		json_output =  funct(io_json_dict)

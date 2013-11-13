@@ -2,6 +2,7 @@
 
 from flask import Flask
 from flask import request
+import ast
 import json
 import urllib2
 import smtplib
@@ -36,12 +37,16 @@ interface = Flask(__name__)
 @interface.route("/query", methods=["POST"])
 def web_query():
     if request.method == "POST":
-        immutable_multi_dict = request.form
-        norm_dict = dict(immutable_multi_dict)
-        print norm_dict
-        action = norm_dict["action"][0]
-        tags = tuple(str(_) for _ in norm_dict["input"] + norm_dict["output"])
+        # norm_dict = dict(immutable_multi_dict)
+        # print "norm_dict" + str(norm_dict)
+        # print request.form
+        data = ast.literal_eval(json.dumps(request.form))
+        data["input"] = ast.literal_eval(data["input"])
+        data["output"] = ast.literal_eval(data["output"])
+        action = data["action"]
+        tags = tuple(str(_) for _ in data["input"].keys() + data["output"].keys())
         print tags
+        # print "tags:" + str(tags)
 
         apis = {'apis': database.query_api(action, tuple(tags))}
         print "apis is " + str(apis)
