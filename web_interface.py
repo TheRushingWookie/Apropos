@@ -40,9 +40,9 @@ def web_query():
     print norm_dict
     action = norm_dict["action"][0]
     tags = tuple(str(_) for _ in norm_dict["input"] + norm_dict["output"])
-    print tags
-
-    apis = {'apis': database.query_api(action, tuple(tags))}
+    print "action " + action
+    print "tags" + str(tags)
+    apis = {'apis': database.query_api(action, tags)}
     print "apis is " + str(apis)
     if apis:
         return urllib2.quote(json.dumps(apis))
@@ -106,11 +106,9 @@ def web_drop_api():
         return "Delete " + api_name + " from the database"
     except:
         return json.dumps({"Status": False})
-
-
 @interface.route("/commit")
 def commit():
     database.conn.commit()
 
 if __name__ == "__main__":
-    interface.run()
+    interface.run(debug=True)
