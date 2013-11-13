@@ -80,4 +80,5 @@ def register_api_provider(api_provider, contact_info):
 
 #register_api_provider('https://127.0.0.1:8000','13917714J@gmail.com')
 #register_api('https://127.0.0.1:8000', 'weather', '064dd4fd-b5c4-4e5c-9cb3-017fcc505032', ['weather','location','temperature','zip','city'])
-query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float"}}'))
+query_proxy("http://127.0.0.1/query",json.loads('{"action": "time", "input": {"timezone": "EST"}, "output": {"timezone": "String"}}'))
+#query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float"}}'))

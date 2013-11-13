@@ -2,6 +2,7 @@ import sqlite3
 import uuid
 from time import gmtime, strftime
 import os
+from fuzzywuzzy import process,fuzz
 dir = os.path.split(os.path.abspath(__file__))[0]
 conn = sqlite3.connect(dir + '/API.db',check_same_thread=False)
 
@@ -109,11 +110,18 @@ def create_test_db ():
 	add_api_key("Example_provider","test_api3",test_api_id,"1239123")
 	print_table('api_endpoints')
 #create_test_db()
-def query_api(category,tags ):
+def query_api(category,tags):
 	c = conn.cursor()
 	placeholder= '?' # For SQLite. See DBAPI paramstyle.
 	placeholders= ', '.join(placeholder for unused in tags)
 	print category + str(tags)
+	choices = fetchall_to_list(c.execute('SELECT * FROM TAGS'),0)
+	fuzzed_tags = ()
+	for i in tags:
+		fuzzed = process.extractOne(i,choices)[0]
+		#print " " +str(fuzzed)
+		fuzzed_tags+=(fuzzed,)
+	print "fuzzed is " + str(fuzzed_tags)
 	intersect_string = '''SELECT api_endpoints.*
 					FROM tagmap, api_endpoints, tags
 					WHERE tags.rowid = tagmap.tag_id
@@ -122,11 +130,17 @@ def query_api(category,tags ):
 					AND api_endpoints.rowid = tagmap.api_id
 					GROUP BY api_endpoints.rowid
 					HAVING COUNT( api_endpoints.rowid )=(?)'''
-	query_rows = c.execute(intersect_string, (category,) + tags + (len(tags),))
+	query_rows = c.execute(intersect_string, (category,) + fuzzed_tags + (len(fuzzed_tags),))
 	filtered_rows = []
 
 	for row in query_rows:
-		print "got " + str(row)
+		#print "got " + str(row)
 		filtered_rows.append([row[2]])
 	return filtered_rows
-print ( " got a"  + str(query_api('stocks',('stock_symbol', 'asking price'))))
+def fetchall_to_list(query_rows,col):
+	filtered_rows = []
+	for row in query_rows:
+		#print "got " + str(row)
+		filtered_rows.append(row[col])
+	return filtered_rows
+print ( " got a"  + str(query_api('stocks',('stock_symbols', 'asking '))))
