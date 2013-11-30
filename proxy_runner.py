@@ -23,7 +23,7 @@ def run_proxy(proxy_name):
 		return proxy_instance
 	except AttributeError:
 		print 'function not found ' + "init_actions"
-instance = run_proxy('TimeAPI')
+instance = run_proxy('YahooStocks')
 
 @instance.interface.route("/query")
 def query():
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     "cod": 200
 }"""))'''
 	
-	instance.interface.run(port=8000,debug=True)
+	instance.interface.run(port=6000,debug=True)
 
 
 

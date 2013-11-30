@@ -104,10 +104,11 @@ def create_test_db ():
 	create_apropos_tables('apis')
 	test_api_id = register_api_provider("Example_provider", "example@example.com")
 	#print print_table("api_endpoints")
-	add_api_endpoint("Example_provider", "test_api3" ,'http://localhost:8000/query' ,test_api_id ,'weather',('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'))
+	add_api_endpoint("Example_provider", "test_api3" ,'http://localhost:7000/query' ,test_api_id ,'weather',('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'))
 	add_api_endpoint("Example_provider", "YahooStocks" ,'http://localhost:8000/query' ,test_api_id ,'stocks',('stock_symbol','Two Hundred day Moving Average', 'Days High', 'Price To Sales Ratio', 'Last Trade Date', 'Book Value', 'Percent Change From Year High', 'Previous Close Price', 'asking price', 'Fifty day Moving Average', 'Days Low', 'Symbol', 'Change From Year High', 'Stock Name', 'Year High', 'Stock Exchange', 'Price Earning Growth Ratio', 'EBITDA', 'Change From Fifty day Moving Average', 'Average Daily Volume', 'Percent Change From Fifty day Moving Average', 'Last Trade Time', 'Year Low', 'Bid', 'Price To Book Ratio', 'Percent Change From Two Hundred day Moving Average', 'Open Price', 'Volume', 'Percent Change From Year Low', 'Short Ratio', 'Change From Year Low', 'Price Earnings Ratio', 'Change From Two Hundred day Moving Average', 'Year Range', 'Market Capitalization'))
+	add_api_endpoint("Example_provider", "WebServiceXStocks" ,'http://localhost:9000/query' ,test_api_id ,'stocks',('Days High', 'Last Trade Date', 'Price Earnings Ratio', 'Year Range', 'P-E', 'Low', 'Open Price', 'MktCap', 'Earns', 'Last Trade Time', 'Symbol', 'Previous Close Price', 'Change in percent', 'Volume', 'PreviousClose', 'Days Low', 'Date', 'Change', 'Stock Name', 'Time', 'PercentageChange', 'High', 'Market Capitalization', 'Change in Realtime', 'AnnRange', 'Last Trade Price', 'Open', 'Earnings per Share'))
 	add_api_key("Example_provider","test_api3",test_api_id,"1239123")
-	add_api_key("Example_provider","test_api3",test_api_id,"1239123")
+	add_api_key("Example_provider","test_api3",test_api_id,"wdwd")
 	print_table('api_endpoints')
 #create_test_db()
 def query_api(category,tags):
@@ -143,4 +144,5 @@ def fetchall_to_list(query_rows,col):
 		#print "got " + str(row)
 		filtered_rows.append(row[col])
 	return filtered_rows
-print ( " got a"  + str(query_api('stocks',('stock_symbols', 'asking '))))
+print print_table('api_endpoints') 
+print ( " got a"  + str(query_api('stocks',('Symbol',))))
