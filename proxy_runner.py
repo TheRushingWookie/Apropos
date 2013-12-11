@@ -43,7 +43,7 @@ def query():
 	print action
 	if action:
 		print(str(instance.actions))
-		funct = instance.actions[action]
+		funct = instance.actions[str(action)]
 
 		print str(funct)
 		json_output =  funct(io_json_dict)
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     "cod": 200
 }"""))'''
 	
-	instance.interface.run(port=8000,debug=True)
+	instance.interface.run(port=6000,debug=True)
 
 
 
