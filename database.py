@@ -3,8 +3,7 @@ import uuid
 from time import gmtime, strftime
 import os
 from fuzzywuzzy import process,fuzz
-dir = os.path.split(os.path.abspath(__file__))[0]
-conn = sqlite3.connect(dir + '/API.db',check_same_thread=False)
+conn = sqlite3.connect(os.getcwd() + '/API.db',check_same_thread=False)
 
 def create_apropos_tables (database_name):
 	#conn = sqlite3.connect(dir + database_name)
@@ -115,14 +114,11 @@ def query_api(category,tags):
 	c = conn.cursor()
 	placeholder= '?' # For SQLite. See DBAPI paramstyle.
 	placeholders= ', '.join(placeholder for unused in tags)
-	print category + str(tags)
 	choices = fetchall_to_list(c.execute('SELECT * FROM TAGS'),0)
 	fuzzed_tags = ()
 	for i in tags:
 		fuzzed = process.extractOne(i,choices)[0]
-		#print " " +str(fuzzed)
 		fuzzed_tags+=(fuzzed,)
-	print "fuzzed is " + str(fuzzed_tags)
 	intersect_string = '''SELECT api_endpoints.*
 					FROM tagmap, api_endpoints, tags
 					WHERE tags.rowid = tagmap.tag_id
@@ -135,14 +131,12 @@ def query_api(category,tags):
 	filtered_rows = []
 
 	for row in query_rows:
-		#print "got " + str(row)
 		filtered_rows.append([row[2]])
 	return filtered_rows
 def fetchall_to_list(query_rows,col):
 	filtered_rows = []
 	for row in query_rows:
-		#print "got " + str(row)
 		filtered_rows.append(row[col])
 	return filtered_rows
-print print_table('api_endpoints') 
-print ( " got a"  + str(query_api('stocks',('Symbol',))))
+
+# print ("got " + str(query_api('stocks',('Symbol',))))

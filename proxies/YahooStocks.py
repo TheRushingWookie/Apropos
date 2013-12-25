@@ -46,7 +46,8 @@ class YahooStocks(proxy.proxy):
 
 
 	def init_actions(self):
-		return {'stocks':self.get_stock_info}
+		# need sample json input
+		return {'stocks': self.get_stock_info}
 
 ''''"asking price": "33.25",
 "Average Daily Volume": "16519500",

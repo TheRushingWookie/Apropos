@@ -10,6 +10,15 @@ import pdb
 import unicodedata
 import database
 
+# Create flask object
+interface = Flask(__name__)
+# def uumd_to_list(umd, key):
+# converts unicode UnmutableMultiDict to a list
+#   unicode_list = list(dict(uumd)[key])
+#   list = []
+#   for item in list:
+#       list.append(str(item))
+#   return list
 
 def send_email(user, password, user_address, receiver, message):
 
@@ -21,16 +30,6 @@ def send_email(user, password, user_address, receiver, message):
     # Send email
     server.sendmail(user_address, receiver, message)
     server.quit()
-# Create flask object
-interface = Flask(__name__)
-# def uumd_to_list(umd, key):
-# converts unicode UnmutableMultiDict to a list
-# 	unicode_list = list(dict(uumd)[key])
-# 	list = []
-# 	for item in list:
-# 		list.append(str(item))
-# 	return list
-
 
 # apropros.com/query?action=...&input=...&output=
 # example: localhost:5000/query?action=weather&input=weather&output=temperature
@@ -44,12 +43,13 @@ def web_query():
         data["input"] = ast.literal_eval(data["input"])
         data["output"] = ast.literal_eval(data["output"])
         action = data["action"]
+        print action
+
         tags = tuple(str(_) for _ in data["input"].keys() + data["output"].keys())
         print tags
-        # print "tags:" + str(tags)
 
         apis = {'apis': database.query_api(action, tuple(tags))}
-        print "apis is " + str(apis)
+        print apis
         if apis:
             return urllib2.quote(json.dumps(apis))
         else:
@@ -80,6 +80,8 @@ def web_register_api_provider():
         return json.dumps({"Status3": False})
 
 # apropros.com/register_api?api_provider=...&api_name=...&api_url=...&provider_key=...&action=...&tag=...
+
+
 @interface.route("/register_api")
 def web_register_api():
     try:
@@ -112,6 +114,8 @@ def web_drop_api():
         return "Delete " + api_name + " from the database"
     except:
         return json.dumps({"Status": False})
+
+
 @interface.route("/commit")
 def commit():
     database.conn.commit()

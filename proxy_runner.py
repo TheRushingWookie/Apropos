@@ -7,6 +7,7 @@ import os
 import inspect
 from os.path import *
 import sys
+
 def run_proxy(proxy_name):
 	global actions,json_outputs
 	dir = os.path.abspath(inspect.getsourcefile(run_proxy))
@@ -93,7 +94,4 @@ if __name__ == "__main__":
     "cod": 200
 }"""))'''
 	
-	instance.interface.run(port=6000,debug=True)
-
-
-
+	instance.interface.run(port=9000,debug=False)
