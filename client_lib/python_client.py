@@ -23,7 +23,6 @@ def query(query):
         response = urllib2.unquote(response)
         response = json.loads(response)
         urls = response['apis']
-        # print urls[0][0]
         responses = []
         for url in urls:
             responses.append(ast.literal_eval(query_proxy(url[0], query)))
@@ -102,8 +101,5 @@ def register_api_provider(api_provider, contact_info):
         return True
     else:
         return False
-print query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float", "Days High" : "string"}}'))
-#register_api_provider('https://127.0.0.1:8000','13917714J@gmail.com')
-#register_api('https://127.0.0.1:8000', 'weather', '064dd4fd-b5c4-4e5c-9cb3-017fcc505032', ['weather','location','temperature','zip','city'])
-# query_proxy("http://127.0.0.1:8000/query",json.loads('{"action": "weather", "input": {"location": "Bethesda"}, "output": {"temperature": "String"}}'))
-#query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float"}}'))
+
+# print query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float", "Days High" : "string"}}'))
