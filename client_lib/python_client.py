@@ -49,13 +49,11 @@ def decide(responses):
 
     O(n) time with O(n) worst-case space
     """
-    cache = {}
+    cache = dict()
+
     # Fill up the hash
     for response in responses:
-        if frozenset(response.items()) not in cache.keys():
-            cache[frozenset(response.items())] = 1
-        else:
-            cache[frozenset(response.items())] += 1
+        cache[frozenset(response.items())] = cache.get(frozenset(response), 0) + 1
 
     # Find the most common response from the cache
     final_response, response_counter = None, 0
