@@ -43,9 +43,9 @@ def decide(responses):
     """
     Iterates through all responses and returns the best response.
     Algorithm:
-    - hash each output
+    - hash each response
     - find key with largest value
-    - return that key
+    - return the response corresponding to the key
 
     O(n) time with O(n) worst-case space
     """
