@@ -24,7 +24,7 @@ def run_proxy(proxy_name):
 		return proxy_instance
 	except AttributeError:
 		print 'function not found ' + "init_actions"
-instance = run_proxy('YahooStocks')
+instance = run_proxy('WebServiceXStockQuotes')
 
 @instance.interface.route("/query")
 def query():
@@ -94,4 +94,4 @@ if __name__ == "__main__":
     "cod": 200
 }"""))'''
 	
-	instance.interface.run(port=8000,debug=False)
+	instance.interface.run(port=9000,debug=False)

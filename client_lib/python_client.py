@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import ast
 import json
 import urllib
 import urllib2
@@ -25,7 +26,7 @@ def query(query):
         # print urls[0][0]
         responses = []
         for url in urls:
-            responses.append(query_proxy(url[0], query))
+            responses.append(ast.literal_eval(query_proxy(url[0], query)))
         return decide(responses)
     else:
         return False
@@ -39,15 +40,31 @@ def query_proxy(url, query):
     response = urllib2.urlopen(url).read()
     return response
 
-def decide(response):
+def decide(responses):
     """
     Iterates through all responses and returns the best response.
     Algorithm:
-    - iterate through each output
-    - find most common output
-    - return that output
+    - hash each output
+    - find key with largest value
+    - return that key
+
+    O(n) time with O(n) worst-case space
     """
-    return response
+    cache = {}
+    # Fill up the hash
+    for response in responses:
+        if frozenset(response.items()) not in cache.keys():
+            cache[frozenset(response.items())] = 1
+        else:
+            cache[frozenset(response.items())] += 1
+
+    # Find the most common response from the cache
+    final_response, response_counter = None, 0
+    for response in responses:
+        if response_counter < cache[frozenset(response.items())]:
+            response_counter = cache[frozenset(response.items())]
+            final_response = response
+    return final_response
 
 # apropros.com/register_api?api_name=...&api_provider=...&api_url=...&provider_key=...&tag=...
 def register_api(api_provider, api_name, api_url, provider_key, tags):
