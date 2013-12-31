@@ -14,7 +14,7 @@ def query(query):
     json_query = {"action": "weather", "input": {"weather": 94539}, "output": {"temperature": "int"}}
     """
     data = urllib.urlencode(query)
-    req = urllib2.Request(domain_name + "query", data)
+    req = urllib2.Request(domain_name + "query?", data)
     response = urllib2.urlopen(req)
 
     if response:
@@ -82,7 +82,7 @@ def register_api_provider(api_provider, contact_info):
         return False
     if response:
         print response.read()
-        return True
+        return True 
     else:
         return False
 print query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float", "Days High" : "string"}}'))

@@ -94,4 +94,7 @@ if __name__ == "__main__":
     "cod": 200
 }"""))'''
 	
-	instance.interface.run(port=8000,debug=False)
+	instance.interface.run(port=8000,debug=True)
+
+
+
