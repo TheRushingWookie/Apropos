@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import ast
 import json
 import urllib
 import urllib2
@@ -22,10 +23,9 @@ def query(query):
         response = urllib2.unquote(response)
         response = json.loads(response)
         urls = response['apis']
-        # print urls[0][0]
         responses = []
         for url in urls:
-            responses.append(query_proxy(url[0], query))
+            responses.append(ast.literal_eval(query_proxy(url[0], query)))
         return decide(responses)
     else:
         return False
@@ -39,15 +39,29 @@ def query_proxy(url, query):
     response = urllib2.urlopen(url).read()
     return response
 
-def decide(response):
+def decide(responses):
     """
     Iterates through all responses and returns the best response.
     Algorithm:
-    - iterate through each output
-    - find most common output
-    - return that output
+    - hash each response
+    - find key with largest value
+    - return the response corresponding to the key
+
+    O(n) time with O(n) worst-case space
     """
-    return response
+    cache = dict()
+
+    # Fill up the hash
+    for response in responses:
+        cache[frozenset(response.items())] = cache.get(frozenset(response), 0) + 1
+
+    # Find the most common response from the cache
+    final_response, response_counter = None, 0
+    for response in responses:
+        if response_counter < cache[frozenset(response.items())]:
+            response_counter = cache[frozenset(response.items())]
+            final_response = response
+    return final_response
 
 # apropros.com/register_api?api_name=...&api_provider=...&api_url=...&provider_key=...&tag=...
 def register_api(api_provider, api_name, api_url, provider_key, tags):
@@ -85,8 +99,5 @@ def register_api_provider(api_provider, contact_info):
         return True 
     else:
         return False
-print query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float", "Days High" : "string"}}'))
-#register_api_provider('https://127.0.0.1:8000','13917714J@gmail.com')
-#register_api('https://127.0.0.1:8000', 'weather', '064dd4fd-b5c4-4e5c-9cb3-017fcc505032', ['weather','location','temperature','zip','city'])
-# query_proxy("http://127.0.0.1:8000/query",json.loads('{"action": "weather", "input": {"location": "Bethesda"}, "output": {"temperature": "String"}}'))
-#query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float"}}'))
+
+# print query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float", "Days High" : "string"}}'))
