@@ -38,7 +38,7 @@ def query_proxy(url, query):
     response = urllib2.urlopen(url).read()
     return response
 
-def decide(responses):
+def decide(responses, target=False, wisdom=False):
     """
     Iterates through all responses and returns the best response.
     Algorithm:
