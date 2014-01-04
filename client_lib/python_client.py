@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import ast
 import json
 import urllib
 import urllib2
@@ -25,7 +24,7 @@ def query(query):
         urls = response['apis']
         responses = []
         for url in urls:
-            responses.append(ast.literal_eval(query_proxy(url[0], query)))
+            responses.append(json.loads(query_proxy(url[0], query)))
         return decide(responses)
     else:
         return False
@@ -39,7 +38,7 @@ def query_proxy(url, query):
     response = urllib2.urlopen(url).read()
     return response
 
-def decide(responses):
+def decide(responses, target=False, wisdom=False):
     """
     Iterates through all responses and returns the best response.
     Algorithm:

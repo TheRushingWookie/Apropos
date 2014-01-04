@@ -3,6 +3,7 @@
 from flask import Flask
 from flask import request
 import ast
+import sys
 import json
 import urllib2
 import smtplib
@@ -37,22 +38,22 @@ def send_email(user, password, user_address, receiver, message):
 @interface.route("/query", methods=["POST"])
 def web_query():
     if request.method == "POST":
-        # norm_dict = dict(immutable_multi_dict)
-        # print "norm_dict" + str(norm_dict)
-        # print request.form
-        data = ast.literal_eval(json.dumps(request.form))
-        data["input"] = ast.literal_eval(data["input"])
-        data["output"] = ast.literal_eval(data["output"])
-        action = data["action"]
-        print action
+        if len(str(request.form)) < sys.maxint / 1000000000000:
+            data = ast.literal_eval(json.dumps(request.form))
+            data["input"] = ast.literal_eval(data["input"])
+            data["output"] = ast.literal_eval(data["output"])
+            action = data["action"]
+            print action
 
-        tags = tuple(str(_) for _ in data["input"].keys() + data["output"].keys())
-        print tags
+            tags = tuple(str(_) for _ in data["input"].keys() + data["output"].keys())
+            print tags
 
-        apis = {'apis': database.query_api(action, tuple(tags))}
-        print apis
-        if apis:
-            return urllib2.quote(json.dumps(apis))
+            apis = {'apis': database.query_api(action, tuple(tags))}
+            print apis
+            if apis:
+                return urllib2.quote(json.dumps(apis))
+            else:
+                return json.dumps({"Status": False})
         else:
             return json.dumps({"Status": False})
 
