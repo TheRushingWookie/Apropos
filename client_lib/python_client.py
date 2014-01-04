@@ -46,8 +46,6 @@ def decide(responses):
     - hash each response
     - find key with largest value
     - return the response corresponding to the key
-
-    O(n) time with O(n) worst-case space
     """
     cache = dict()
 
@@ -64,15 +62,14 @@ def decide(responses):
     return final_response
 
 # apropros.com/register_api?api_name=...&api_provider=...&api_url=...&provider_key=...&tag=...
-def register_api(api_provider, api_name, api_url, provider_key, tags):
+def register_api(api_provider, api_name, api_url, provider_key, tags, api_login_info):
     """
     Allows an API provider to register an API.
     """
+    url_dict = {'api_provider':api_provider,'api_name':api_name,'api_url':api_url,'provider_key':provider_key,'tags':tags,'api_login_info':api_login_info,'category':'test'}
     url = domain_name + "register_api?"
-    url += "api_name=" + api_name + "&api_provider=" + api_provider + "&provider_key=" + \
-        provider_key + "&tags=" + \
-        urllib2.quote(json.dumps(tags)) + \
-        "&api_url=" + urllib2.quote(api_url)
+    url += urllib.urlencode(url_dict)
+    print url
     try:
         response = urllib2.urlopen(url)
     except:
@@ -83,6 +80,7 @@ def register_api(api_provider, api_name, api_url, provider_key, tags):
     else:
         return False
 
+#register_api('Example_provider','test139','127.0.0.1:8000/test139','72e85cde-fba4-4456-b1e8-e26284d7d862',['no tags',],'''{"username":"Quinn","apikey":"123"}''')
 # apropros.com/register_api_provider?api_provider=...&contact_info=...
 def register_api_provider(api_provider, contact_info):
     """
