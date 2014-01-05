@@ -7,10 +7,14 @@ from fuzzywuzzy import process,fuzz
 import logging
 import json
 
-
+#+strftime("%a, %d %b %Y %X +0000", gmtime()) +
 conn = sqlite3.connect(os.getcwd() + '/API' +strftime("%a, %d %b %Y %X +0000", gmtime()) + '.db' ,check_same_thread=False)
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+def set_logger(logger_instance):
+	global logger
+	logger = logger_instance
+	logger.warn('new logger')
 
 def fetchall_to_list(query_rows,col):
 	'''Returns a single column in a list of a query'''
@@ -26,20 +30,44 @@ id_two_selector = '''select rowid from (?) where (?) = (?) and (?) = (?)'''
 def find_id(table_name, query_dict):
 	'''Finds the rowid of the row with matching query_dict for the table. Returns rowid'''
 	global id_one_selector,id_two_selector
+<<<<<<< HEAD
 	query_cols_len = len(query_cols)
 	if(query_cols_len == 1):
 		return fetch_single_val(c.execute(id_one_selector,(table_name,)))	
 	fetch_single_val(c.execute())
+=======
+	c = conn.cursor()
+
+	selector_string = id_one_selector
+	selector_vals = ()
+	if len(query_dict.keys()) > 1:
+
+		for i in query_dict.keys():
+			selector_string += ' and (?) = (?)'
+			selector_vals += (i,query_dict[i])
+	else:
+		key = query_dict.keys()[0]
+		selector_vals = (key,query_dict[key])
+	selector_string = '''select rowid from (?) where (?) = (?)'''
+	return fetch_single_val(c.execute(selector_string,selector_vals),0)
+>>>>>>> 931f04bbb590a2372090300b0af601ca50956e47
 def create_apropos_tables ():
 	'''Sets up database tables.'''
 	#conn = sqlite3.connect(dir + database_name)
 	# Create table
 	c = conn.cursor()
-	c.execute('''CREATE TABLE tags ( tag_name text )''')
-	c.execute('''CREATE TABLE tagmap ( tag_id integer, api_id integer)''')
-	
-	
-	c.execute('''CREATE TABLE api_providers (date text, api_provider_name text, email text, owner_key text)''')
+	c.execute('''CREATE TABLE tags 
+			( tag_name text )''')
+
+	c.execute('''CREATE TABLE tagmap 
+			( tag_id integer,
+			 api_id integer)''')
+
+	c.execute('''CREATE TABLE api_providers 
+		(date text, 
+		api_provider_name text, 
+		email text, 
+		owner_key text)''')
 	
 	c.execute('''CREATE TABLE api_endpoints
 		(date text, 
@@ -97,19 +125,22 @@ def register_api_provider (api_provider_name,email):
 		return provider_key
 	else:
 		return None
+
 #print(register_api_provider("Example_provider", "example@example.com"))
 def add_authent_info ( api_provider_name,api_endpoint_name, authent_info_json):
 	'''Adds an API key to the DB. Submitter does not need to be verified as anyone can submit an API key. A captcha should prevent spamming. Returns true or false based on success.'''
 	c = conn.cursor()
 	time = strftime("%a, %d %b %Y %X +0000", gmtime())
-	provider_id = find_id('api_providers',('api_provider_name',),('api_provider_name',))
+	provider_id = fetch_single_val(c.execute (''' select rowid from api_providers where api_provider_name = ?''', (api_provider_name,)).fetchall(),0)
 	if provider_id:
-		endpoint_results = fetch_single_val( c.execute('''select rowid from api_endpoints where api_name = (?) and api_provider_id = (?)''', (api_endpoint_name,api_provider_name)).fetchall(),0)
-		if endpoint_results:
-			api_endpoint_id =endpoint_results
+		#authenticate that a provider exists with the gvien name
+		api_endpoint_id = fetch_single_val( c.execute('''select rowid from api_endpoints where api_name = (?) and api_provider_id = (?)''', (api_endpoint_name,provider_id)).fetchall(),0)
+		
+		if api_endpoint_id:
+			#If an api_endpoint with the given name and provider proceed
 			authent_terms_json = fetch_single_val(c.execute('''select authent_json from api_authent_terms where api_endpoint_id = ?''', (api_endpoint_id,)),0)
 			if authent_terms_json:
-				print authent_terms_json
+				logger.debug('add_authent_info:authent_terms_json for %s is %s',api_provider_name, authent_terms_json)
 				authent_terms = json.loads(authent_terms_json)
 				authent_info = json.loads(authent_info_json)
 				for i in authent_terms.keys():
@@ -120,9 +151,9 @@ def add_authent_info ( api_provider_name,api_endpoint_name, authent_info_json):
 				conn.commit()
 				return True
 			else:
-				logger.warning('add_authent_info: authent terms not found for info %s' (api_endpoint_id, authent_info))
+				logger.warning('add_authent_info: authent terms for %s not found for info %s' (api_endpoint_name, authent_info_json))
 		else:
-			logger.warning('add_authent_info: no endpoint found for %s' ( api_endpoint_id, authent_info))
+			logger.warning('add_authent_info: no endpoint found for %s', ( api_endpoint_name,))
 	else:
 		logger.warning('add_authent_info: No provider id found for name %s', (api_provider_name))
 	return False
@@ -136,14 +167,16 @@ def get_authent_info(api_endpoint_name):
 	c = conn.cursor()
 	endpoint_id = fetch_single_val(c.execute('''select rowid from api_endpoints where api_name = (?)''', (api_endpoint_name,)).fetchall(),0)
 	if endpoint_id:
-		possible_keys = fetch_single_val(c.execute('''select info_json from api_authent_info where api_endpoint_id = (?)''',(endpoint_id,)).fetchall(),0)
+		
+		possible_keys = fetchall_to_list(c.execute('''select info_json from api_authent_info where api_endpoint_id = (?)''',(endpoint_id,)).fetchall(),0)
+		
 		if possible_keys:
 			random_index = randrange(len(possible_keys))
 			return possible_keys[random_index]
 		else:
-			logger.warning('get_authent_info: No possible keys found')
+			logger.warning('get_authent_info: No possible keys found for apiendpoint %s' , api_endpoint_name)
 	else:
-		logger.warning('''get_authent_info: Failed to find endpoint_id''')
+		logger.warning('''get_authent_info: Failed to find endpoint_id for endpoint %s''', api_endpoint_name)
 
 	return False
 
@@ -151,7 +184,7 @@ def get_authent_info(api_endpoint_name):
 def print_table(table_name):	
 	c = conn.cursor()
 	results = c.execute('''select * from ''' + table_name ).fetchall()
-	print results
+	return results
 def add_tags_to_endpoint(tags,c,api_id):
 
 	for tag in tags: 
@@ -159,10 +192,10 @@ def add_tags_to_endpoint(tags,c,api_id):
 		prev_tag = fetch_single_val(c.execute('''select rowid from tags where tag_name = (?)''', (tag,)).fetchall(),0)
 		if prev_tag:
 			tag_id = prev_tag
-			logger.debug('''add_api_endpoint:Found previous tag''')
+			#logger.debug('''add_api_endpoint:Found previous tag''')
 		else:
 			c.execute('''insert into tags values (?)''', (tag,))
-			logger.debug('''inserted tag %s''', tag)
+			#logger.debug('''inserted tag %s''', tag)
 			tag_id = c.lastrowid
 			
 		#c.execute('''add_api_endpoint:insert into tagmap values (?,?)''', (tag_id,api_id))
@@ -184,7 +217,9 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category,
 				c.execute('''insert into api_endpoints values (?,?,?,?,?,?)''', (time, api_name, api_url, owner_key, category,provider_id)) #add the endpoint
 				rowid = fetch_single_val(c.execute (''' select rowid from api_endpoints where api_name = (?) and owner_key = (?)''', (api_name,owner_key,)).fetchall(),0)
 				# add the authent terms to the authent terms table
+				conn.commit()
 				add_api_authent_terms(api_provider_name,api_name, owner_key, api_authent_terms,rowid,time)
+				conn.commit()
 				add_tags_to_endpoint(tags,c,rowid)
 				conn.commit()
 				return True
@@ -199,17 +234,19 @@ def create_test_db ():
 	global test_api_id
 	create_apropos_tables()
 	test_api_id = register_api_provider("Example_provider", "example@example.com")
-	#print print_table("api_endpoints")
+	logger.debug(print_table("api_providers"))
 	#test_api_id = u'4150c9e7-c1a6-4511-bca1-7cb5bb3a724e'
 	logger.debug('''added api %s with status %s''', 'test-api3', add_api_endpoint("Example_provider", "test_api3" ,'http://localhost:7000/query' ,test_api_id ,'weather',('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'),"{}"))
 	logger.debug('''added api %s with status %s''', 'YahooStocks', add_api_endpoint ("Example_provider", "YahooStocks" ,'http://localhost:8000/query' ,test_api_id ,'stocks',('stock_symbol','Two Hundred day Moving Average', 'Days High', 'Price To Sales Ratio', 'Last Trade Date', 'Book Value', 'Percent Change From Year High', 'Previous Close Price', 'asking price', 'Fifty day Moving Average', 'Days Low', 'Symbol', 'Change From Year High', 'Stock Name', 'Year High', 'Stock Exchange', 'Price Earning Growth Ratio', 'EBITDA', 'Change From Fifty day Moving Average', 'Average Daily Volume', 'Percent Change From Fifty day Moving Average', 'Last Trade Time', 'Year Low', 'Bid', 'Price To Book Ratio', 'Percent Change From Two Hundred day Moving Average', 'Open Price', 'Volume', 'Percent Change From Year Low', 'Short Ratio', 'Change From Year Low', 'Price Earnings Ratio', 'Change From Two Hundred day Moving Average', 'Year Range', 'Market Capitalization'),"{}"))
 	logger.debug('''added api %s with status %s''', 'WebServiceXStocks',  add_api_endpoint("Example_provider", "WebServiceXStocks" ,'http://localhost:9000/query' ,test_api_id ,'stocks',('stock_symbol', 'Days High', 'Last Trade Date', 'Price Earnings Ratio', 'Year Range', 'P-E', 'Low', 'Open Price', 'MktCap', 'Earns', 'Last Trade Time', 'Symbol', 'Previous Close Price', 'Change in percent', 'Volume', 'PreviousClose', 'Days Low', 'Date', 'Change', 'Stock Name', 'Time', 'PercentageChange', 'High', 'Market Capitalization', 'Change in Realtime', 'AnnRange', 'Last Trade Price', 'Open', 'Earnings per Share'),'{"username": "testuser", "apikey": "testkey"}'))
-	add_authent_info ( "Example_provider","WebServiceXStocks", '''{"username":"Quinn","apikey":"123"}''')
-	add_authent_info ( "Example_provider","WebServiceXStocks", '''{"apikey":"123"}''')
-	print get_authent_info("WebServiceXStocks")
+	add_authent_info ( "Example_provider","WebServiceXStocks", '''{"username":"Quinn","apikey":"123"}''') #should succeed
+	add_authent_info ( "Example_provider","WebServiceXStocks", '''{"apikey":"123"}''') # prints Missing json key username in json {"apikey":"123"} for api WebServiceXStocks
+	logger.debug("authent info for WebServiceXStocks: %s", get_authent_info("WebServiceXStocks"))
+	
 	#add_api_key("Example_provider","test_api3",test_api_id,"wdwd")
 	conn.commit()
-	print_table('api_endpoints')
+	#print_table('api_endpoints')
+#print print_table('api_providers')
 create_test_db()
 def query_api(category,tags):
 	'''Main public access point for the DB. Queries the database for all APIs that match the category and all of the tags. Returns a list of API urls.'''
@@ -218,9 +255,9 @@ def query_api(category,tags):
 	placeholders= ', '.join(placeholder for unused in tags)
 	choices = fetchall_to_list(c.execute('SELECT * FROM TAGS'),0)
 	fuzzed_tags = ()
-	print "table"
-	print_table('api_providers')
-	print choices
+	#print "table"
+	#print_table('api_providers')
+	#print choices
 	for i in tags:
 		fuzz_possibilities = process.extractOne(i,choices) #Find the closest matching tag
 		print i
@@ -242,5 +279,5 @@ def query_api(category,tags):
 	for row in query_rows:
 		filtered_rows.append([row[2]])
 	return filtered_rows
-print print_table('api_authent_terms') 
+#print print_table('api_authent_terms') 
 #print ( " got a"  + str(query_api('stocks',('Symbol','Volume'))))

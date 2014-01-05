@@ -79,21 +79,25 @@ def web_register_api():
 
         api_provider = param_dict['api_provider'][0]
         api_name = param_dict['api_name'][0]
-        api_url = param_dict['api_url'][0]
-        api_action = param_dict['action'][0]
-        provider_key = param_dict['provider_key'][0]
 
-        tags_unicode = json.loads(param_dict['tags'][0])
+        api_url = param_dict['api_url'][0]
+        
+        api_category = param_dict['category'][0]
+
+        provider_key = param_dict['provider_key'][0]
+        api_login_info = param_dict['api_login_info'][0]
+        tags_unicode = param_dict['tags'][0]
         tags = []
 
         for tag in tags_unicode:
             tags.append(str(tag))
         print api_provider, api_name, api_url, provider_key, tags
-        if database.add_api_endpoint(api_provider, api_name, api_url, provider_key, api_action,  tags):
+        if database.add_api_endpoint(api_provider, api_name, api_url, provider_key, api_category, tags, api_login_info):
             return json.dumps({"Status": True})
         else:
             return json.dumps({"Status1": False})
-    except:
+    except Exception as e:
+        interface.logger.warning('Failed with %s', e)
         return json.dumps({"Status2": False})
 
 # apropros.com/drop_api?api_name=...
