@@ -6,9 +6,11 @@ from random import randrange
 from fuzzywuzzy import process,fuzz
 import logging
 import json
-
+from Analytics import user,api_analytics,olddb
+from flask.ext.sqlalchemy import SQLAlchemy
+from main import *
 #+strftime("%a, %d %b %Y %X +0000", gmtime()) +
-conn = sqlite3.connect(os.getcwd() + '/API' + '.db' ,check_same_thread=False)
+conn = sqlite3.connect(os.getcwd() + '/API' +'.db' ,check_same_thread=False)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 def set_logger(logger_instance):
@@ -49,21 +51,29 @@ def create_apropos_tables ():
 	#conn = sqlite3.connect(dir + database_name)
 	# Create table
 	c = conn.cursor()
-	c.execute('''CREATE TABLE tags 
-			( tag_name text )''')
+	c.execute('''CREATE TABLE tags
+			( 
+				id integer PRIMARY KEY,
+				tag_name text )''')
 
 	c.execute('''CREATE TABLE tagmap 
-			( tag_id integer,
+			( 
+			id integer PRIMARY KEY,
+			tag_id integer,
 			 api_id integer)''')
 
 	c.execute('''CREATE TABLE api_providers 
-		(date text, 
+		(
+			id integer PRIMARY KEY,
+		date text, 
 		api_provider_name text, 
 		email text, 
 		owner_key text)''')
 	
 	c.execute('''CREATE TABLE api_endpoints
-		(date text, 
+		(
+		id integer PRIMARY KEY,
+		date text,
 		api_name text,
 		api_url text,
 		owner_key text,
@@ -72,10 +82,12 @@ def create_apropos_tables ():
 		''')
 	
 	c.execute('''CREATE TABLE api_authent_info (
+			id integer PRIMARY KEY,
 			date text,  
 			info_json text , 
 			api_endpoint_id integer, FOREIGN KEY(api_endpoint_id) REFERENCES api_endpoints(rowid))''')
 	c.execute('''CREATE TABLE api_authent_terms (
+												id integer PRIMARY KEY,
 												date text, 
 												owner_key text, 
 												authent_json text,
@@ -113,7 +125,7 @@ def register_api_provider (api_provider_name,email):
 	time = strftime("%a, %d %b %Y %X +0000", gmtime())
 	if not if_provider_exists(api_provider_name,c):
 		provider_key = generate_uuid()
-		c.execute("insert into api_providers values (?, ?, ?, ?)", (time, api_provider_name, email, provider_key))
+		c.execute("insert into api_providers values (NULL,?, ?, ?, ?)", (time, api_provider_name, email, provider_key))
 		conn.commit()
 		return provider_key
 	else:
@@ -140,7 +152,7 @@ def add_authent_info ( api_provider_name,api_endpoint_name, authent_info_json):
 					if i not in authent_info:
 						logger.warning('''add_authent_info:Missing json key %s in json %s for api %s''', i, authent_info_json, api_endpoint_name)
 						return False
-				c.execute('''insert into api_authent_info values (?,?,?)''', (time, authent_info_json, api_endpoint_id))
+				c.execute('''insert into api_authent_info values (NULL,?,?,?)''', (time, authent_info_json, api_endpoint_id))
 				conn.commit()
 				return True
 			else:
@@ -153,7 +165,7 @@ def add_authent_info ( api_provider_name,api_endpoint_name, authent_info_json):
 def add_api_authent_terms(api_provider_name,api_endpoint_name, owner_key, terms, endpoint_id,time):
 	'''Updates the terms that need to exist in any api_key json. Can only be used by the owner of the api provider account. Returns true/false depending on success.'''
 	c = conn.cursor()
-	c.execute('''insert into api_authent_terms values (?,?,?,?)''', (time ,owner_key, terms, endpoint_id))
+	c.execute('''insert into api_authent_terms values (NULL,?,?,?,?)''', (time ,owner_key, terms, endpoint_id))
 	#Finish this later. Needs to check for previous terms. If they exist, use UPDATE statement. Else use select
 def get_authent_info(api_endpoint_name):
 	'''Get a random authent info'''
@@ -187,7 +199,7 @@ def add_tags_to_endpoint(tags,c,api_id):
 			tag_id = prev_tag
 			#logger.debug('''add_api_endpoint:Found previous tag''')
 		else:
-			c.execute('''insert into tags values (?)''', (tag,))
+			c.execute('''insert into tags values (NULL,?)''', (tag,))
 			#logger.debug('''inserted tag %s''', tag)
 			tag_id = c.lastrowid
 			
@@ -207,7 +219,7 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category,
 		else: #add a new api_endpoint
 			provider_id = fetch_single_val(c.execute (''' select rowid from api_providers where api_provider_name = ?''', (api_provider_name,)).fetchall(),0)
 			if provider_id: #find the provider row
-				c.execute('''insert into api_endpoints values (?,?,?,?,?,?)''', (time, api_name, api_url, owner_key, category,provider_id)) #add the endpoint
+				c.execute('''insert into api_endpoints values (NULL,?,?,?,?,?,?)''', (time, api_name, api_url, owner_key, category,provider_id)) #add the endpoint
 				rowid = fetch_single_val(c.execute (''' select rowid from api_endpoints where api_name = (?) and owner_key = (?)''', (api_name,owner_key,)).fetchall(),0)
 				# add the authent terms to the authent terms table
 				conn.commit()
@@ -225,7 +237,9 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category,
 test_api_id = ""
 def create_test_db ():
 	global test_api_id
-	create_apropos_tables()
+	#create_apropos_tables()
+	db.create_all()
+	db.session.commit()
 	test_api_id = register_api_provider("Example_provider", "example@example.com")
 	logger.debug(print_table("api_providers"))
 	#test_api_id = u'4150c9e7-c1a6-4511-bca1-7cb5bb3a724e'
@@ -238,9 +252,12 @@ def create_test_db ():
 	
 	#add_api_key("Example_provider","test_api3",test_api_id,"wdwd")
 	conn.commit()
+	cnn = db.engine.connect()
+	print cnn.execute('select * from api_endpoints').fetchall()
+	
 	#print_table('api_endpoints')
 #print print_table('api_providers')
-#create_test_db()
+create_test_db()
 def query_api(category,tags):
 	'''Main public access point for the DB. Queries the database for all APIs that match the category and all of the tags. Returns a list of API urls.'''
 	c = conn.cursor()
@@ -274,3 +291,15 @@ def query_api(category,tags):
 	return filtered_rows
 #print print_table('api_authent_terms') 
 #print ( " got a"  + str(query_api('stocks',('Symbol','Volume'))))
+
+
+
+
+
+
+
+
+
+
+
+
