@@ -23,8 +23,8 @@ def run_proxy(proxy_name):
 	except AttributeError:
 		print 'function not found ' + "init_actions"
 
-instance = run_proxy('YahooStocks')
-# instance = run_proxy('WebServiceXStockQuotes')
+# instance = run_proxy('YahooStocks')
+instance = run_proxy('WebServiceXStockQuotes')
 
 @instance.interface.route("/query")
 def query():
@@ -51,48 +51,6 @@ def query():
 		return instance.filter_outputs(io_json_dict,json_output)
 	return "hello"	
 
-if __name__ == "__main__":
-	
-	'''
-	print proxy_instance.filter_outputs(json.loads('{"output": {"temperature": "string","pressure":"string", "windspeed":"int"}}'),json.loads"""{
-    "coord": {
-        "lon": -77.0969,
-        "lat": 38.9864
-    },
-    "sys": {
-        "country": "United States of America",
-        "sunrise": 1381835926,
-        "sunset": 1381876149
-    },
-    "weather": [
-        {
-            "id": 801,
-            "main": "Clouds",
-            "description": "few clouds",
-            "icon": "02d"
-        }
-    ],
-    "base": "gdps stations",
-    "main": {
-        "temp": 292.808,
-        "temp_min": 292.708,
-        "temp_max": 292.708,
-        "pressure": 1027.29,
-        "sea_level": 1034.89,
-        "grnd_level": 1027.29,
-        "humidity": 71
-    },
-    "wind": {
-        "speed": 1.95,
-        "deg": 42.5005
-    },
-    "clouds": {
-        "all": 20
-    },
-    "dt": 1381865209,
-    "id": 4348599,
-    "name": "Bethesda",
-    "cod": 200
-}"""))'''
-	
-	instance.interface.run(port=8000,debug=False)
+if __name__ == "__main__":	
+    instance.interface.run(port=9000,debug=False)
+    # instance.interface.run(port=8000,debug=False)

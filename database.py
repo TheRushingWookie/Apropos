@@ -27,9 +27,9 @@ def find_id(table_name, query_dict):
 	'''Finds the rowid of the row with matching query_dict for the table. Returns rowid'''
 	global id_one_selector,id_two_selector
 	query_cols_len = len(query_cols)
-	if( query_cols_len == 1):
-		return fetch_single_val(c.execute(id_one_selector,(table_name,))	
-	fetch_single_val(c.execute()
+	if(query_cols_len == 1):
+		return fetch_single_val(c.execute(id_one_selector,(table_name,)))	
+	fetch_single_val(c.execute())
 def create_apropos_tables ():
 	'''Sets up database tables.'''
 	#conn = sqlite3.connect(dir + database_name)

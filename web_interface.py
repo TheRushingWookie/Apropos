@@ -11,18 +11,9 @@ import pdb
 import unicodedata
 import database
 
-# Create flask object
 interface = Flask(__name__)
-# def uumd_to_list(umd, key):
-# converts unicode UnmutableMultiDict to a list
-#   unicode_list = list(dict(uumd)[key])
-#   list = []
-#   for item in list:
-#       list.append(str(item))
-#   return list
 
 def send_email(user, password, user_address, receiver, message):
-
     # Initialize SMTP server
     server = smtplib.SMTP('smtp.gmail.com:587')
     server.starttls()
@@ -81,8 +72,6 @@ def web_register_api_provider():
         return json.dumps({"Status3": False})
 
 # apropros.com/register_api?api_provider=...&api_name=...&api_url=...&provider_key=...&action=...&tag=...
-
-
 @interface.route("/register_api")
 def web_register_api():
     try:
