@@ -8,7 +8,7 @@ import logging
 import json
 
 #+strftime("%a, %d %b %Y %X +0000", gmtime()) +
-conn = sqlite3.connect(os.getcwd() + '/API' +strftime("%a, %d %b %Y %X +0000", gmtime()) + '.db' ,check_same_thread=False)
+conn = sqlite3.connect(os.getcwd() + '/API' + '.db' ,check_same_thread=False)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 def set_logger(logger_instance):
@@ -240,7 +240,7 @@ def create_test_db ():
 	conn.commit()
 	#print_table('api_endpoints')
 #print print_table('api_providers')
-create_test_db()
+#create_test_db()
 def query_api(category,tags):
 	'''Main public access point for the DB. Queries the database for all APIs that match the category and all of the tags. Returns a list of API urls.'''
 	c = conn.cursor()
