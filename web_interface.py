@@ -2,6 +2,7 @@
 
 from flask import Flask
 from flask import request
+from main import *
 import ast
 import sys
 import json
@@ -9,7 +10,6 @@ import urllib2
 import smtplib
 import pdb
 import unicodedata
-import database
 
 interface = Flask(__name__)
 
@@ -25,7 +25,7 @@ def send_email(user, password, user_address, receiver, message):
 
 # apropros.com/query?action=...&input=...&output=
 # example: localhost:5000/query?action=weather&input=weather&output=temperature
-@interface.route("/query", methods=["POST"])
+@app.route("/query", methods=["POST"])
 def web_query():
     if request.method == "POST":
         if len(str(request.form)) < sys.maxint / 1000000000000:
@@ -48,7 +48,7 @@ def web_query():
             return json.dumps({"Status": False})
 
 # apropros.com/register_api_provider?api_provider=...&contact_info=...
-@interface.route("/register_api_provider")
+@app.route("/register_api_provider")
 def web_register_api_provider():
     """
     To-do:
@@ -72,7 +72,9 @@ def web_register_api_provider():
         return json.dumps({"Status3": False})
 
 # apropros.com/register_api?api_provider=...&api_name=...&api_url=...&provider_key=...&action=...&tag=...
-@interface.route("/register_api")
+
+
+@app.route("/register_api")
 def web_register_api():
     try:
         param_dict = dict(request.args)
@@ -97,11 +99,11 @@ def web_register_api():
         else:
             return json.dumps({"Status1": False})
     except Exception as e:
-        interface.logger.warning('Failed with %s', e)
+        app.logger.warning('Failed with %s', e)
         return json.dumps({"Status2": False})
 
 # apropros.com/drop_api?api_name=...
-@interface.route("/drop_api")
+@app.route("/drop_api")
 def web_drop_api():
     try:
         api_name = str(list(dict(request.args)["api_name"])[0])
@@ -110,9 +112,10 @@ def web_drop_api():
         return json.dumps({"Status": False})
 
 
-@interface.route("/commit")
+@app.route("/commit")
 def commit():
     database.conn.commit()
 
 if __name__ == "__main__":
-    interface.run(debug=True)
+    app.run(debug=True)
+
