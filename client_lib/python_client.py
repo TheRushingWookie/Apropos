@@ -55,16 +55,15 @@ def query(query, target=None, wisdom=100, fast=False):
     elif fast:
         query["mode"] = {"wisdom": 1}
     else:
-        return None
+        raise Exception("Invalid Mode")
 
-    data = urllib.urlencode(json.loads(query))
+    data = urllib.urlencode(query)
     req = urllib2.Request(domain_name + "query?", data)
 
-    # Retrieve IPs of proxies
     try:
-        response = urllib2.urlopen(req)
+        response = urllib2.urlopen(req) # Retrieve IPs of proxies
     except Exception as e:
-        print e
+        print "Error: {0}".format(e)
 
     if response:
         response = response.read()
@@ -74,37 +73,13 @@ def query(query, target=None, wisdom=100, fast=False):
         urls = [url[0] for url in response['apis']]
 
         if wisdom in query["mode"]:
-            pool = multiprocessing.Pool(workers=wisdom) # how much parallelism?
+            pool = multiprocessing.Pool(workers=len(urls)) # Create a process for each url
             response = pool.map(query_proxy, urls)
             return decide(response)
 
-<<<<<<< HEAD
         return None
     else:
         return None
-=======
-def decide(responses, target=False, wisdom=False):
-    """
-    Iterates through all responses and returns the best response.
-    Algorithm:
-    - hash each response
-    - find key with largest value
-    - return the response corresponding to the key
-    """
-    cache = dict()
-
-    # Fill up the hash
-    for response in responses:
-        cache[frozenset(response.items())] = cache.get(frozenset(response), 0) + 1
-
-    # Find the most common response from the cache
-    final_response, response_counter = None, 0
-    for response in responses:
-        if response_counter < cache[frozenset(response.items())]:
-            response_counter = cache[frozenset(response.items())]
-            final_response = response
-    return final_response
->>>>>>> 931f04bbb590a2372090300b0af601ca50956e47
 
 # apropros.com/register_api?api_name=...&api_provider=...&api_url=...&provider_key=...&tag=...
 def register_api(api_provider, api_name, api_url, provider_key, tags, api_login_info):
@@ -143,4 +118,4 @@ def register_api_provider(api_provider, contact_info):
     else:
         return False
 
-# print query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float", "Days High" : "string"}}'))
+# print query({"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float", "Days High" : "string"}})

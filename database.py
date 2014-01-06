@@ -30,12 +30,10 @@ id_two_selector = '''select rowid from (?) where (?) = (?) and (?) = (?)'''
 def find_id(table_name, query_dict):
 	'''Finds the rowid of the row with matching query_dict for the table. Returns rowid'''
 	global id_one_selector,id_two_selector
-<<<<<<< HEAD
 	query_cols_len = len(query_cols)
 	if(query_cols_len == 1):
 		return fetch_single_val(c.execute(id_one_selector,(table_name,)))	
 	fetch_single_val(c.execute())
-=======
 	c = conn.cursor()
 
 	selector_string = id_one_selector
@@ -50,7 +48,6 @@ def find_id(table_name, query_dict):
 		selector_vals = (key,query_dict[key])
 	selector_string = '''select rowid from (?) where (?) = (?)'''
 	return fetch_single_val(c.execute(selector_string,selector_vals),0)
->>>>>>> 931f04bbb590a2372090300b0af601ca50956e47
 def create_apropos_tables ():
 	'''Sets up database tables.'''
 	#conn = sqlite3.connect(dir + database_name)
@@ -247,7 +244,7 @@ def create_test_db ():
 	conn.commit()
 	#print_table('api_endpoints')
 #print print_table('api_providers')
-create_test_db()
+# create_test_db()
 def query_api(category,tags):
 	'''Main public access point for the DB. Queries the database for all APIs that match the category and all of the tags. Returns a list of API urls.'''
 	c = conn.cursor()
