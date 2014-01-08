@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from main import *
 import database
 import sys
@@ -9,11 +9,15 @@ import json
 interface = Flask(__name__)
 
 
+def check_assertions(request, path):
+    assert sys.getsizeof(request.json) < 1048576
+    assert request.path == path
+    assert request.method == 'POST'
+
+
 @app.route("/query", methods=["POST"])
 def web_query():
-    assert sys.getsizeof(request.json) < 1048576
-    assert request.path == '/query'
-    assert request.method == 'POST'
+    check_assertions(request, '/query')
 
     tags = tuple(str(tag) for tag in
                  request.json["input"].keys() +

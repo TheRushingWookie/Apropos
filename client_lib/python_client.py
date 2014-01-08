@@ -120,12 +120,13 @@ def register_api(api_provider, api_name, api_url,
     response = req.json()
     return response
 
-print query({"action": "stocks",
-             "input": {"stock_symbol": "BAC"},
-             "output": {"Volume": "float",
-                        "Days High": "string"}})
+if __name__ == "__main__":
+    print query({"action": "stocks",
+                 "input": {"stock_symbol": "BAC"},
+                 "output": {"Volume": "float",
+                            "Days High": "string"}})
 
-# print register_api_provider('Google', 'google@gmail.com')
+    # print register_api_provider('Google', 'google@gmail.com')
 
-# print register_api("Google", "Stocks", "stocks.google.com",
-#                    "123", ['stocks'], "idk")
+    # print register_api("Google", "Stocks", "stocks.google.com",
+    #                    "123", ['stocks'], "idk")
