@@ -1,9 +1,8 @@
 #!/usr/bin/python
 
-from flask import Flask
-from flask import request
+from flask import Flask, request, jsonify
 from main import *
-import ast
+import database
 import sys
 import json
 import urllib2
@@ -23,31 +22,23 @@ def send_email(user, password, user_address, receiver, message):
     server.sendmail(user_address, receiver, message)
     server.quit()
 
-# apropros.com/query?action=...&input=...&output=
-# example: localhost:5000/query?action=weather&input=weather&output=temperature
 @app.route("/query", methods=["POST"])
 def web_query():
-    if request.method == "POST":
-        if len(str(request.form)) < sys.maxint / 1000000000000:
-            data = ast.literal_eval(json.dumps(request.form))
-            data["input"] = ast.literal_eval(data["input"])
-            data["output"] = ast.literal_eval(data["output"])
-            action = data["action"]
-            print action
+    assert len(str(request.json)) < sys.maxint / 1000000000000
+    assert request.path == '/query'
+    assert request.method == 'POST'
 
-            tags = tuple(str(_) for _ in data["input"].keys() + data["output"].keys())
-            print tags
+    tags = tuple(str(tag) for tag in request.json["input"].keys() + request.json["output"].keys())
+    print tags
 
-            apis = {'apis': database.query_api(action, tuple(tags))}
-            print apis
-            if apis:
-                return urllib2.quote(json.dumps(apis))
-            else:
-                return json.dumps({"Status": False})
-        else:
-            return json.dumps({"Status": False})
+    apis = {'apis': database.query_api(request.json["action"], tuple(tags))}
+    print apis
 
-# apropros.com/register_api_provider?api_provider=...&contact_info=...
+    if apis:
+        return json.dumps(apis)
+    else:
+        return json.dumps({"Status": False})
+
 @app.route("/register_api_provider")
 def web_register_api_provider():
     """
@@ -71,9 +62,6 @@ def web_register_api_provider():
     except:
         return json.dumps({"Status3": False})
 
-# apropros.com/register_api?api_provider=...&api_name=...&api_url=...&provider_key=...&action=...&tag=...
-
-
 @app.route("/register_api")
 def web_register_api():
     try:
@@ -83,7 +71,7 @@ def web_register_api():
         api_name = param_dict['api_name'][0]
 
         api_url = param_dict['api_url'][0]
-        
+
         api_category = param_dict['category'][0]
 
         provider_key = param_dict['provider_key'][0]
@@ -102,7 +90,6 @@ def web_register_api():
         app.logger.warning('Failed with %s', e)
         return json.dumps({"Status2": False})
 
-# apropros.com/drop_api?api_name=...
 @app.route("/drop_api")
 def web_drop_api():
     try:

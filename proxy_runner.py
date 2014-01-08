@@ -32,9 +32,9 @@ def query():
 
 	norm_dict = dict(immutable_multi_dict)
 
-	
+
 	io_json_list = norm_dict['json'][0]
-	
+
 	io_json_dict = json.loads(io_json_list)
 	#return str(instance.actions)
     #io_json_dict = json.loads(io_json_dict)
@@ -49,8 +49,8 @@ def query():
 		print str(funct)
 		json_output =  funct(io_json_dict)
 		return instance.filter_outputs(io_json_dict,json_output)
-	return "hello"	
+	return "hello"
 
-if __name__ == "__main__":	
+if __name__ == "__main__":
     instance.interface.run(port=9000,debug=False)
     # instance.interface.run(port=8000,debug=False)
