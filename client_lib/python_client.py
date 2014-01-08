@@ -14,22 +14,15 @@ def query_proxy(content):
     """
     url = content['url']
     query = content['query']
-    url += "?json=" + urllib2.quote(json.dumps(query))
-    response = urllib2.urlopen(url).read()
-    return json.loads(response)
+    req = requests.get(url, {'json': query})
+    return json.loads(req.json())
 
 
 def query(query, target=None, wisdom=100, fast=False):
     """
-    json_query is a json dict with keys "input" and "output".
-    The "input" value is a dict of inputs with keys as tags
-    and values as the values of the tag, i.e. "zip": 61820.
-    The "output" value is a dict of outputs with keys as the
-    requested output (and also serves as a tag) and values as
-    return types, i.e. "hour": "int".
     Example:
     json_query = {"action": "weather",
-                  "input": {"weather": 94539},
+                  "input": {"zip": 94539},
                   "output": {"temperature": "int"}}
     """
 
@@ -71,7 +64,7 @@ def query(query, target=None, wisdom=100, fast=False):
                         data=json.dumps(query),
                         headers={'Content-type': 'application/json',
                                  'Accept': 'application/json'})
-    response = req.json()  # Retrieve proxy endpoints
+    response = req.json()
 
     if response:
         urls = [url[0] for url in response['apis']]

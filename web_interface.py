@@ -13,17 +13,6 @@ import unicodedata
 interface = Flask(__name__)
 
 
-def send_email(user, password, user_address, receiver, message):
-    # Initialize SMTP server
-    server = smtplib.SMTP('smtp.gmail.com:587')
-    server.starttls()
-    server.login(user, password)
-
-    # Send email
-    server.sendmail(user_address, receiver, message)
-    server.quit()
-
-
 @app.route("/query", methods=["POST"])
 def web_query():
     assert sys.getsizeof(request.json) < 1048576
@@ -31,7 +20,8 @@ def web_query():
     assert request.method == 'POST'
 
     tags = tuple(str(tag) for tag in
-                 request.json["input"].keys() + request.json["output"].keys())
+                 request.json["input"].keys() +
+                 request.json["output"].keys())
     apis = {'apis': database.query_api(request.json["action"], tuple(tags))}
 
     if apis:
@@ -44,10 +34,21 @@ def web_query():
 def web_register_api_provider():
     """
     To-do:
-            - check if valid email
-            - check if no other html parameters entered
-            - add rate limiter
+        - check if valid email
+        - check if no other html parameters entered
+        - add rate limiter
     """
+
+    def send_email(user, password, user_address, receiver, message):
+        # Initialize SMTP server
+        server = smtplib.SMTP('smtp.gmail.com:587')
+        server.starttls()
+        server.login(user, password)
+
+        # Send email
+        server.sendmail(user_address, receiver, message)
+        server.quit()
+
     try:
         api_provider = str(dict(request.args)["api_provider"][0])
         contact_info_string = str(dict(request.args)["contact_info"][0])
