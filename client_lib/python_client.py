@@ -97,10 +97,9 @@ def query(query, target=None, wisdom=100, fast=False):
                 # and kill all other living processes
                 fastest_response = q.get(block=True, timeout=60)
 
-                for p in active_children():
-                    # This is dirty. Will cause broken pipes
-                    # on proxy servers that did not return yet.
-                    p.terminate()
+                # This is dirty. Will cause broken pipes
+                # on proxy servers that did not return yet.
+                [p.terminate() for p in active_children()]
 
                 return fastest_response
 
