@@ -5,10 +5,6 @@ from main import *
 import database
 import sys
 import json
-import urllib2
-import smtplib
-import pdb
-import unicodedata
 
 interface = Flask(__name__)
 
@@ -30,7 +26,7 @@ def web_query():
         return json.dumps({"Status": False})
 
 
-@app.route("/register_api_provider")
+@app.route("/register_api_provider", methods=["POST"])
 def web_register_api_provider():
     """
     To-do:
@@ -38,73 +34,72 @@ def web_register_api_provider():
         - check if no other html parameters entered
         - add rate limiter
     """
+    assert sys.getsizeof(request.json) < 1048576
+    assert request.path == '/register_api_provider'
+    assert request.method == 'POST'
 
-    def send_email(user, password, user_address, receiver, message):
+    def send_email(username, password, user_address, receiver, message):
+        import smtplib
+
         # Initialize SMTP server
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.starttls()
-        server.login(user, password)
+        server.login(username, password)
 
         # Send email
         server.sendmail(user_address, receiver, message)
         server.quit()
 
-    try:
-        api_provider = str(dict(request.args)["api_provider"][0])
-        contact_info_string = str(dict(request.args)["contact_info"][0])
-        registration_key = database.register_api_provider(
-            api_provider, contact_info_string)
-        print registration_key
-        if registration_key:
-            send_email("13917714j", "3019236Q", "13917714j@gmail.com",
-                       contact_info_string, registration_key)
-            return json.dumps({"Status1": True})
-        else:
-            return json.dumps({"Status2": False})
-    except:
-        return json.dumps({"Status3": False})
+    api_provider = request.json["api_provider"]
+    contact_info = request.json["contact_info"]
+
+    registration_key = database.register_api_provider(api_provider,
+                                                      contact_info)
+
+    if registration_key:
+        send_email("13917714j",
+                   "3019236Q",
+                   "13917714j@gmail.com",
+                   contact_info,
+                   registration_key)
+
+        return json.dumps({"Status": True})
+    else:
+        return json.dumps({"Status": False})
 
 
-@app.route("/register_api")
+@app.route("/register_api", methods=["POST"])
 def web_register_api():
-    try:
-        param_dict = dict(request.args)
+    assert sys.getsizeof(request.json) < 1048576
+    assert request.path == '/register_api'
+    assert request.method == 'POST'
 
-        api_provider = param_dict['api_provider'][0]
-        api_name = param_dict['api_name'][0]
+    tags_unicode = request.json['tags']
+    tags = []
 
-        api_url = param_dict['api_url'][0]
+    for tag in tags_unicode:
+        tags.append(str(tag))
 
-        api_category = param_dict['category'][0]
-
-        provider_key = param_dict['provider_key'][0]
-        api_login_info = param_dict['api_login_info'][0]
-        tags_unicode = param_dict['tags'][0]
-        tags = []
-
-        for tag in tags_unicode:
-            tags.append(str(tag))
-        print api_provider, api_name, api_url, provider_key, tags
-        if database.add_api_endpoint(api_provider,
-                                     api_name,
-                                     api_url,
-                                     provider_key,
-                                     api_category,
-                                     tags,
-                                     api_login_info):
-            return json.dumps({"Status": True})
-        else:
-            return json.dumps({"Status1": False})
-    except Exception as e:
-        app.logger.warning('Failed with %s', e)
-        return json.dumps({"Status2": False})
+    if database.add_api_endpoint(request.json['api_provider'],
+                                 request.json['api_name'],
+                                 request.json['api_url'],
+                                 request.json['provider_key'],
+                                 request.json['category'],
+                                 map(str, request.json['tags']),
+                                 request.json['api_login_info']):
+        return json.dumps({"Status": True})
+    else:
+        return json.dumps({"Status": False})
 
 
-@app.route("/drop_api")
+@app.route("/drop_api", methods=["POST"])
 def web_drop_api():
+    assert sys.getsizeof(request.json) < 1048576
+    assert request.path == '/drop_api'
+    assert request.method == 'POST'
+
     try:
-        api_name = str(list(dict(request.args)["api_name"])[0])
-        return "Delete " + api_name + " from the database"
+        return "Delete " + request.json['api_name'] + " from the database"
     except:
         return json.dumps({"Status": False})
 
