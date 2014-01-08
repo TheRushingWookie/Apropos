@@ -6,10 +6,13 @@ import requests
 domain_name = "http://localhost:5000/"
 
 
+# Pool.map must pickle an importable function,
+# so query_proxy must be global
 def query_proxy(content):
     """
     Returns response from proxy.
     """
+
     req = requests.post(content['url'] + '?json=',
                         data=json.dumps(content['query']),
                         headers={'Content-type': 'application/json',
@@ -21,9 +24,9 @@ def query_proxy(content):
 def query(query, target=None, wisdom=100, fast=False):
     """
     Example:
-    json_query = {"action": "weather",
-                  "input": {"zip": 94539},
-                  "output": {"temperature": "int"}}
+    query = {"action": "weather",
+             "input": {"zip": 94539},
+             "output": {"temperature": "int"}}
     """
 
     def decide(responses):
@@ -36,12 +39,16 @@ def query(query, target=None, wisdom=100, fast=False):
 
         O(n) time with O(n) worst-case space
         """
+
         cache = dict()
 
         # Fill up the hash table
         for response in responses:
-            cache[frozenset(response.items())] = cache.get(
-                frozenset(response), 0) + 1
+            hashable_response = frozenset(response.items())
+            if hashable_response in cache:
+                cache[hashable_response] += 1
+            else:
+                cache[hashable_response] = 1
 
         # Find the most common response from the cache
         final_response, response_counter = None, 0
@@ -49,14 +56,16 @@ def query(query, target=None, wisdom=100, fast=False):
             if response_counter < cache[frozenset(response.items())]:
                 response_counter = cache[frozenset(response.items())]
                 final_response = response
+
         return final_response
 
     if isinstance(target, basestring):
         query["mode"] = {"target": target}
+    elif fast:
+        wisdom = 1
+        query["mode"] = {"wisdom": wisdom}
     elif isinstance(wisdom, int):
         query["mode"] = {"wisdom": wisdom}
-    elif fast:
-        query["mode"] = {"wisdom": 1}
     else:
         raise Exception("Invalid Mode")
 
@@ -71,16 +80,39 @@ def query(query, target=None, wisdom=100, fast=False):
         contents = [{'url': url, 'query': query} for url in urls]
 
         if 'wisdom' in query["mode"]:
-            if fast:  # Fast mode
-                from multiprocessing import Process, Queue
-                return
-            elif target:  # Target mode
-                return
+            if fast:
+                from multiprocessing import Process, Queue, active_children
+
+                q = Queue(len(urls))
+
+                def fast_wrapper(params):
+                    q.put(query_proxy(params), block=False)
+
+                # Fire off a process for each url
+                processes = [Process(target=fast_wrapper, args=(content,))
+                             for content in contents]
+                [p.start() for p in processes[::-1]]
+
+                # Block until first process returns
+                # and kill all other living processes
+                fastest_response = q.get(block=True, timeout=60)
+
+                for p in active_children():
+                    # This is dirty. Will cause broken pipes
+                    # on proxy servers that did not return yet.
+                    p.terminate()
+
+                return fastest_response
+
             else:  # Wisdom mode
                 from multiprocessing import Pool
+
                 pool = Pool(len(urls) if len(urls) < wisdom else wisdom)
                 response = pool.map(query_proxy, contents)
                 return decide(response)
+
+        elif isinstance(target, basestring):
+            return
 
         return None
     else:
@@ -124,7 +156,7 @@ if __name__ == "__main__":
     print query({"action": "stocks",
                  "input": {"stock_symbol": "BAC"},
                  "output": {"Volume": "float",
-                            "Days High": "string"}})
+                            "Days High": "string"}}, fast=True)
 
     # print register_api_provider('Google', 'google@gmail.com')
 

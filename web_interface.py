@@ -38,9 +38,8 @@ def web_register_api_provider():
         - check if no other html parameters entered
         - add rate limiter
     """
-    assert sys.getsizeof(request.json) < 1048576
-    assert request.path == '/register_api_provider'
-    assert request.method == 'POST'
+
+    check_assertions(request, '/register_api_provider')
 
     def send_email(username, password, user_address, receiver, message):
         import smtplib
@@ -74,15 +73,7 @@ def web_register_api_provider():
 
 @app.route("/register_api", methods=["POST"])
 def web_register_api():
-    assert sys.getsizeof(request.json) < 1048576
-    assert request.path == '/register_api'
-    assert request.method == 'POST'
-
-    tags_unicode = request.json['tags']
-    tags = []
-
-    for tag in tags_unicode:
-        tags.append(str(tag))
+    check_assertions(request, '/register_api')
 
     if database.add_api_endpoint(request.json['api_provider'],
                                  request.json['api_name'],
@@ -98,10 +89,7 @@ def web_register_api():
 
 @app.route("/drop_api", methods=["POST"])
 def web_drop_api():
-    assert sys.getsizeof(request.json) < 1048576
-    assert request.path == '/drop_api'
-    assert request.method == 'POST'
-
+    check_assertions(request, '/drop_api')
     try:
         return "Delete " + request.json['api_name'] + " from the database"
     except:
