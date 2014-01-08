@@ -4,7 +4,6 @@ import json
 import urllib
 import urllib2
 import requests
-from multiprocessing import Pool
 
 domain_name = "http://localhost:5000/"
 
@@ -77,10 +76,17 @@ def query(query, target=None, wisdom=100, fast=False):
     if response:
         urls = [url[0] for url in response['apis']]
         contents = [{'url': url, 'query': query} for url in urls]
+
         if 'wisdom' in query["mode"]:
-            pool = Pool(len(urls) if len(urls) <= wisdom else wisdom)
-            response = pool.map(query_proxy, contents)
-            return decide(response)
+            if query['mode']['wisdom'] == 1:  # Fast mode
+                from multiprocessing import Process, Queue
+                return
+
+            else:  # Wisdom mode
+                from multiprocessing import Pool
+                pool = Pool(len(urls) if len(urls) < wisdom else wisdom)
+                response = pool.map(query_proxy, contents)
+                return decide(response)
 
         return None
     else:

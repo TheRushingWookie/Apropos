@@ -12,6 +12,7 @@ import unicodedata
 
 interface = Flask(__name__)
 
+
 def send_email(user, password, user_address, receiver, message):
     # Initialize SMTP server
     server = smtplib.SMTP('smtp.gmail.com:587')
@@ -22,22 +23,22 @@ def send_email(user, password, user_address, receiver, message):
     server.sendmail(user_address, receiver, message)
     server.quit()
 
+
 @app.route("/query", methods=["POST"])
 def web_query():
-    assert len(str(request.json)) < sys.maxint / 1000000000000
+    assert sys.getsizeof(request.json) < 1048576
     assert request.path == '/query'
     assert request.method == 'POST'
 
-    tags = tuple(str(tag) for tag in request.json["input"].keys() + request.json["output"].keys())
-    print tags
-
+    tags = tuple(str(tag) for tag in
+                 request.json["input"].keys() + request.json["output"].keys())
     apis = {'apis': database.query_api(request.json["action"], tuple(tags))}
-    print apis
 
     if apis:
         return json.dumps(apis)
     else:
         return json.dumps({"Status": False})
+
 
 @app.route("/register_api_provider")
 def web_register_api_provider():
@@ -62,6 +63,7 @@ def web_register_api_provider():
     except:
         return json.dumps({"Status3": False})
 
+
 @app.route("/register_api")
 def web_register_api():
     try:
@@ -82,13 +84,20 @@ def web_register_api():
         for tag in tags_unicode:
             tags.append(str(tag))
         print api_provider, api_name, api_url, provider_key, tags
-        if database.add_api_endpoint(api_provider, api_name, api_url, provider_key, api_category, tags, api_login_info):
+        if database.add_api_endpoint(api_provider,
+                                     api_name,
+                                     api_url,
+                                     provider_key,
+                                     api_category,
+                                     tags,
+                                     api_login_info):
             return json.dumps({"Status": True})
         else:
             return json.dumps({"Status1": False})
     except Exception as e:
         app.logger.warning('Failed with %s', e)
         return json.dumps({"Status2": False})
+
 
 @app.route("/drop_api")
 def web_drop_api():
@@ -105,4 +114,3 @@ def commit():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
