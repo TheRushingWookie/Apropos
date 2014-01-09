@@ -27,10 +27,10 @@ def fetchall_to_list(query_rows,col):
 def fetch_single_val(query_rows,col):
 	for row in query_rows:
 		return row[col]
-id_one_selector = '''select rowid from (?) where (?) = (?)'''
-id_two_selector = '''select rowid from (?) where (?) = (?) and (?) = (?)'''
+id_one_selector = '''select id from (?) where (?) = (?)'''
+id_two_selector = '''select id from (?) where (?) = (?) and (?) = (?)'''
 def find_id(table_name, query_dict):
-	'''Finds the rowid of the row with matching query_dict for the table. Returns rowid'''
+	'''Finds the id of the row with matching query_dict for the table. Returns id'''
 	global id_one_selector,id_two_selector
 	c = conn.cursor()
 
@@ -44,7 +44,7 @@ def find_id(table_name, query_dict):
 	else:
 		key = query_dict.keys()[0]
 		selector_vals = (key,query_dict[key])
-	selector_string = '''select rowid from (?) where (?) = (?)'''
+	selector_string = '''select id from (?) where (?) = (?)'''
 	return fetch_single_val(c.execute(selector_string,selector_vals),0)
 def create_apropos_tables ():
 	'''Sets up database tables.'''
@@ -85,13 +85,13 @@ def create_apropos_tables ():
 			id integer PRIMARY KEY,
 			date text,  
 			info_json text , 
-			api_endpoint_id integer, FOREIGN KEY(api_endpoint_id) REFERENCES api_endpoints(rowid))''')
+			api_endpoint_id integer, FOREIGN KEY(api_endpoint_id) REFERENCES api_endpoints(id))''')
 	c.execute('''CREATE TABLE api_authent_terms (
 												id integer PRIMARY KEY,
 												date text, 
 												owner_key text, 
 												authent_json text,
-												api_endpoint_id integer, FOREIGN KEY(api_endpoint_id) REFERENCES api_endpoints(rowid))''')
+												api_endpoint_id integer, FOREIGN KEY(api_endpoint_id) REFERENCES api_endpoints(id))''')
 	# Insert a row of data
 	
 	# Save (commit) the changes	
@@ -106,7 +106,7 @@ def verify_owner(api_provider_name,owner_key):
 	'''Verify that the api_provider_name corresponds to the owner_key
 		Returns true if it matches'''
 	c = conn.cursor()
-	owner_verified  = fetch_single_val(c.execute (''' select rowid from api_providers where owner_key = (?) AND api_provider_name = (?)''', (owner_key,api_provider_name,)),0)
+	owner_verified  = fetch_single_val(c.execute (''' select id from api_providers where owner_key = (?) AND api_provider_name = (?)''', (owner_key,api_provider_name,)),0)
 	if owner_verified:
 		return True
 	logger.debug('''owner_key: %s . api_provider_name %s . owner_verified %s .''', owner_key, api_provider_name, owner_verified )
@@ -136,10 +136,10 @@ def add_authent_info ( api_provider_name,api_endpoint_name, authent_info_json):
 	'''Adds an API key to the DB. Submitter does not need to be verified as anyone can submit an API key. A captcha should prevent spamming. Returns true or false based on success.'''
 	c = conn.cursor()
 	time = strftime("%a, %d %b %Y %X +0000", gmtime())
-	provider_id = fetch_single_val(c.execute (''' select rowid from api_providers where api_provider_name = ?''', (api_provider_name,)).fetchall(),0)
+	provider_id = fetch_single_val(c.execute (''' select id from api_providers where api_provider_name = ?''', (api_provider_name,)).fetchall(),0)
 	if provider_id:
 		#authenticate that a provider exists with the gvien name
-		api_endpoint_id = fetch_single_val( c.execute('''select rowid from api_endpoints where api_name = (?) and api_provider_id = (?)''', (api_endpoint_name,provider_id)).fetchall(),0)
+		api_endpoint_id = fetch_single_val( c.execute('''select id from api_endpoints where api_name = (?) and api_provider_id = (?)''', (api_endpoint_name,provider_id)).fetchall(),0)
 		
 		if api_endpoint_id:
 			#If an api_endpoint with the given name and provider proceed
@@ -170,7 +170,7 @@ def add_api_authent_terms(api_provider_name,api_endpoint_name, owner_key, terms,
 def get_authent_info(api_endpoint_name):
 	'''Get a random authent info'''
 	c = conn.cursor()
-	endpoint_id = fetch_single_val(c.execute('''select rowid from api_endpoints where api_name = (?)''', (api_endpoint_name,)).fetchall(),0)
+	endpoint_id = fetch_single_val(c.execute('''select id from api_endpoints where api_name = (?)''', (api_endpoint_name,)).fetchall(),0)
 	if endpoint_id:
 		
 		possible_keys = fetchall_to_list(c.execute('''select info_json from api_authent_info where api_endpoint_id = (?)''',(endpoint_id,)).fetchall(),0)
@@ -194,16 +194,16 @@ def add_tags_to_endpoint(tags,c,api_id):
 
 	for tag in tags: 
 		#loop through tags inserting each into the tags table and make a link via the tagmap table. If the tag already exists, link the pre-existing tag.
-		prev_tag = fetch_single_val(c.execute('''select rowid from tags where tag_name = (?)''', (tag,)).fetchall(),0)
+		prev_tag = fetch_single_val(c.execute('''select id from tags where tag_name = (?)''', (tag,)).fetchall(),0)
 		if prev_tag:
 			tag_id = prev_tag
 			#logger.debug('''add_api_endpoint:Found previous tag''')
 		else:
 			c.execute('''insert into tags values (NULL,?)''', (tag,))
 			#logger.debug('''inserted tag %s''', tag)
-			tag_id = c.lastrowid
+			tag_id = fetch_single_val(c.execute('''select id from tags where tag_name = (?)''', (tag,)).fetchall(),0)
 			
-		#c.execute('''add_api_endpoint:insert into tagmap values (?,?)''', (tag_id,api_id))
+		c.execute('''insert into tagmap values (NULL, ?,?)''', (tag_id,api_id))
 def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category, tags,api_authent_terms):
 	'''Adds an api endpoint to the db and adds the tags and api_authent_terms to their respective tables. Returns true or false depending on success.'''
 	c = conn.cursor()
@@ -217,15 +217,15 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category,
 			logger.info('''add_api_endpoint:Previous provider found.''')
 			return False
 		else: #add a new api_endpoint
-			provider_id = fetch_single_val(c.execute (''' select rowid from api_providers where api_provider_name = ?''', (api_provider_name,)).fetchall(),0)
+			provider_id = fetch_single_val(c.execute (''' select id from api_providers where api_provider_name = ?''', (api_provider_name,)).fetchall(),0)
 			if provider_id: #find the provider row
 				c.execute('''insert into api_endpoints values (NULL,?,?,?,?,?,?)''', (time, api_name, api_url, owner_key, category,provider_id)) #add the endpoint
-				rowid = fetch_single_val(c.execute (''' select rowid from api_endpoints where api_name = (?) and owner_key = (?)''', (api_name,owner_key,)).fetchall(),0)
+				id = fetch_single_val(c.execute (''' select id from api_endpoints where api_name = (?) and owner_key = (?)''', (api_name,owner_key,)).fetchall(),0)
 				# add the authent terms to the authent terms table
 				conn.commit()
-				add_api_authent_terms(api_provider_name,api_name, owner_key, api_authent_terms,rowid,time)
+				add_api_authent_terms(api_provider_name,api_name, owner_key, api_authent_terms,id,time)
 				conn.commit()
-				add_tags_to_endpoint(tags,c,rowid)
+				add_tags_to_endpoint(tags,c,id)
 				conn.commit()
 				return True
 
@@ -257,37 +257,39 @@ def create_test_db ():
 	
 	#print_table('api_endpoints')
 #print print_table('api_providers')
-create_test_db()
+#create_test_db()
 def query_api(category,tags):
 	'''Main public access point for the DB. Queries the database for all APIs that match the category and all of the tags. Returns a list of API urls.'''
 	c = conn.cursor()
 	placeholder= '?' # For SQLite. See DBAPI paramstyle.
 	placeholders= ', '.join(placeholder for unused in tags)
-	choices = fetchall_to_list(c.execute('SELECT * FROM TAGS'),0)
+	choices = fetchall_to_list(c.execute('SELECT tag_name FROM TAGS'),0)
 	fuzzed_tags = ()
 	#print "table"
 	#print_table('api_providers')
-	#print choices
+	logger.debug("tags %s", tags)
+	logger.debug("choices %s", choices)
 	for i in tags:
 		fuzz_possibilities = process.extractOne(i,choices) #Find the closest matching tag
 		print i
 		fuzzed = fuzz_possibilities[0]
 		#print " " +str(fuzzed)
 		fuzzed_tags+=(fuzzed,)
-	#print "fuzzed is " + str(fuzzed_tags)
-	intersect_string = '''SELECT api_endpoints.*
+	logger.debug("fuzzed is " + str(fuzzed_tags))
+	intersect_string = '''SELECT api_endpoints.api_url
 					FROM tagmap, api_endpoints, tags
-					WHERE tags.rowid = tagmap.tag_id
+					WHERE tags.id = tagmap.tag_id
 					AND api_endpoints.category = (?)
 					AND (tags.tag_name IN (''' + placeholders + '''))
-					AND api_endpoints.rowid = tagmap.api_id
-					GROUP BY api_endpoints.rowid
-					HAVING COUNT( api_endpoints.rowid )=(?)''' #This fun line of SQL translates into finding the APIs that match all the tags and the category
+					AND api_endpoints.id = tagmap.api_id
+					GROUP BY api_endpoints.id
+					HAVING COUNT( api_endpoints.id )=(?)''' #This fun line of SQL translates into finding the APIs that match all the tags and the category
+	logger.debug("query_strings is %s ", intersect_string)
 	query_rows = c.execute(intersect_string, (category,) + fuzzed_tags + (len(fuzzed_tags),))
 	filtered_rows = []
-
+	logger.debug('''query_rows %s''', query_rows)
 	for row in query_rows:
-		filtered_rows.append([row[2]])
+		filtered_rows.append([row[0]])
 	return filtered_rows
 #print print_table('api_authent_terms') 
 #print ( " got a"  + str(query_api('stocks',('Symbol','Volume'))))

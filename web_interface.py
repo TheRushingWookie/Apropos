@@ -10,7 +10,7 @@ import urllib2
 import smtplib
 import pdb
 import unicodedata
-
+import database
 # Create flask object
 
 # def uumd_to_list(umd, key):
@@ -42,13 +42,13 @@ def web_query():
             data["input"] = ast.literal_eval(data["input"])
             data["output"] = ast.literal_eval(data["output"])
             action = data["action"]
-            print action
+            logger.debug('%s', action)
 
             tags = tuple(str(_) for _ in data["input"].keys() + data["output"].keys())
-            print tags
+            logger.debug('%s',  tags)
 
             apis = {'apis': database.query_api(action, tuple(tags))}
-            print apis
+            logger.debug('%s' , apis)
             if apis:
                 return urllib2.quote(json.dumps(apis))
             else:

@@ -23,6 +23,7 @@ def query(query):
         response = json.loads(response)
         urls = response['apis']
         responses = []
+        print urls
         for url in urls:
             responses.append(json.loads(query_proxy(url[0], query)))
         return decide(responses)
@@ -96,5 +97,4 @@ def register_api_provider(api_provider, contact_info):
         return True 
     else:
         return False
-
-# print query(json.loads('{"action": "stocks", "input": {"stock_symbol": "BAC"}, "output": {"Volume": "float", "Days High" : "string"}}'))
+print query(json.loads('{"action": "stocks", "input": {"Stock_symbol": "BAC"}, "output": {"Volume": "float"}}'))
