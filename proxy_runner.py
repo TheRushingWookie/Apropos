@@ -6,6 +6,12 @@ import json
 import inspect
 import importlib
 
+"""
+Usage:
+python proxy_runner.py YahooStocks 8000;
+python proxy_runner.py WebServiceXStockQuotes 9000
+"""
+
 
 def run_proxy(proxy_name):
     global actions, json_outputs
@@ -34,10 +40,7 @@ def query():
     action = request.json['action']
 
     if action:
-        print(str(instance.actions))
         funct = instance.actions[str(action)]
-
-        print str(funct)
         json_output = funct(request.json)
 
         return instance.filter_outputs(request.json, json_output)

@@ -91,7 +91,7 @@ def query(query, target=None, wisdom=100, fast=False):
                 # Fire off a process for each url
                 processes = [Process(target=fast_wrapper, args=(content,))
                              for content in contents]
-                [p.start() for p in processes[::-1]]
+                [p.start() for p in processes]
 
                 # Block until first process returns
                 # and kill all other living processes
@@ -108,6 +108,7 @@ def query(query, target=None, wisdom=100, fast=False):
 
                 pool = Pool(len(urls) if len(urls) < wisdom else wisdom)
                 response = pool.map(query_proxy, contents)
+
                 return decide(response)
 
         elif isinstance(target, basestring):
@@ -154,8 +155,7 @@ def register_api(api_provider, api_name, api_url,
 if __name__ == "__main__":
     print query({"action": "stocks",
                  "input": {"stock_symbol": "BAC"},
-                 "output": {"Volume": "float",
-                            "Days High": "string"}}, fast=True)
+                 "output": {"Volume": "float"}})
 
     # print register_api_provider('Google', 'google@gmail.com')
 

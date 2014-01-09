@@ -80,7 +80,7 @@ def web_register_api():
                                  request.json['api_url'],
                                  request.json['provider_key'],
                                  request.json['category'],
-                                 map(str, request.json['tags']),
+                                 list(map(str, request.json['tags'])),
                                  request.json['api_login_info']):
         return json.dumps({"Status": True})
     else:
