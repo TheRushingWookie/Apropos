@@ -1,3 +1,6 @@
+*.orig
+*.db
+
 # OS X specific
 .DS_Store
 
