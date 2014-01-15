@@ -22,6 +22,7 @@ def web_query():
     tags = tuple(str(tag) for tag in
                  request.json["input"].keys() +
                  request.json["output"].keys())
+    print "TAGS " + str(tuple(tags))
     apis = {'apis': database.query_api(request.json["action"], tuple(tags))}
 
     if apis:
@@ -99,6 +100,7 @@ def web_drop_api():
 @app.route("/commit")
 def commit():
     database.conn.commit()
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -155,7 +155,7 @@ def register_api(api_provider, api_name, api_url,
 if __name__ == "__main__":
     print query({"action": "stocks",
                  "input": {"stock_symbol": "BAC"},
-                 "output": {"Volume": "float"}})
+                 "output": {"Short Ratio": "float"}})
 
     # print register_api_provider('Google', 'google@gmail.com')
 

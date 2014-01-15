@@ -99,7 +99,7 @@ def create_apropos_tables ():
 	conn.commit()
 	# We can also close the connection if we are done with it.
 	# Just be sure any changes have been committed or they will be lost.
-#create_apropos_tables()
+# create_apropos_tables()
 def generate_uuid ():
 	'''Used to generate a provider key. The key serves as a password for each api_provider_name. TODO: SWITCH TO HMAC SO NO NEED TO PASS THE KEY BACK AND FORTH'''
 	return str(uuid.uuid4())
@@ -255,7 +255,7 @@ def create_test_db ():
 	conn.commit()
 	cnn = db.engine.connect()
 	print cnn.execute('select * from api_endpoints').fetchall()
-	
+
 	#print_table('api_endpoints')
 #print print_table('api_providers')
 # create_test_db()
@@ -272,7 +272,6 @@ def query_api(category,tags):
 	logger.debug("choices %s", choices)
 	for i in tags:
 		fuzz_possibilities = process.extractOne(i,choices) #Find the closest matching tag
-		print i
 		fuzzed = fuzz_possibilities[0]
 		#print " " +str(fuzzed)
 		fuzzed_tags+=(fuzzed,)
