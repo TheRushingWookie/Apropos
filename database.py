@@ -258,24 +258,30 @@ def create_test_db ():
 
 	#print_table('api_endpoints')
 #print print_table('api_providers')
-# create_test_db()
+#create_test_db()
+def find_closest_tags (tags):
+	c = conn.cursor()
+	fuzzed_tags = {}
+	choices = fetchall_to_list(c.execute('SELECT tag_name FROM TAGS'),0)
+	for i in tags:
+		fuzz_possibilities = process.extractOne(i,choices) #Find the closest matching tag
+		fuzzed = fuzz_possibilities[0]
+		#print " " +str(fuzzed)
+		fuzzed_tags[i] = fuzzed
+	logger.debug("tags %s", tags)
+	logger.debug("choices %s", choices)
+	logger.debug("fuzzed is " + str(fuzzed_tags))
+	return fuzzed_tags
 def query_api(category,tags):
 	'''Main public access point for the DB. Queries the database for all APIs that match the category and all of the tags. Returns a list of API urls.'''
 	c = conn.cursor()
 	placeholder= '?' # For SQLite. See DBAPI paramstyle.
 	placeholders= ', '.join(placeholder for unused in tags)
-	choices = fetchall_to_list(c.execute('SELECT tag_name FROM TAGS'),0)
-	fuzzed_tags = ()
+	
+	
 	#print "table"
 	#print_table('api_providers')
-	logger.debug("tags %s", tags)
-	logger.debug("choices %s", choices)
-	for i in tags:
-		fuzz_possibilities = process.extractOne(i,choices) #Find the closest matching tag
-		fuzzed = fuzz_possibilities[0]
-		#print " " +str(fuzzed)
-		fuzzed_tags+=(fuzzed,)
-	logger.debug("fuzzed is " + str(fuzzed_tags))
+
 	intersect_string = '''SELECT api_endpoints.api_url
 					FROM tagmap, api_endpoints, tags
 					WHERE tags.id = tagmap.tag_id
@@ -285,11 +291,12 @@ def query_api(category,tags):
 					GROUP BY api_endpoints.id
 					HAVING COUNT( api_endpoints.id )=(?)''' #This fun line of SQL translates into finding the APIs that match all the tags and the category
 	logger.debug("query_strings is %s ", intersect_string)
-	query_rows = c.execute(intersect_string, (category,) + fuzzed_tags + (len(fuzzed_tags),))
+	query_rows = c.execute(intersect_string, (category,) + tags + (len(tags),))
 	filtered_rows = []
-	logger.debug('''query_rows %s''', query_rows)
+	
 	for row in query_rows:
 		filtered_rows.append([row[0]])
+	logger.debug('''filtered_rows %s''', filtered_rows)
 	return filtered_rows
 #print print_table('api_authent_terms')
 #print ( " got a"  + str(query_api('stocks',('Symbol','Volume'))))

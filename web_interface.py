@@ -22,8 +22,17 @@ def web_query():
     tags = tuple(str(tag) for tag in
                  request.json["input"].keys() +
                  request.json["output"].keys())
-    print "TAGS " + str(tuple(tags))
-    apis = {'apis': database.query_api(request.json["action"], tuple(tags))}
+
+    logger.debug("tags %s",tags)
+    fuzzed_tag_map = database.find_closest_tags(tags)
+    logger.debug("Fuzzed tag map %s", fuzzed_tag_map)
+    fuzzed_tags = [fuzzed_tag_map[key] for key in fuzzed_tag_map.keys()]
+    logger.debug("Fuzzed tags %s", fuzzed_tags)
+    for tag in fuzzed_tag_map.keys():
+        fuzzed_tag_map[fuzzed_tag_map[tag]] = tag
+    apis = {'apis': database.query_api(request.json["action"], tuple(fuzzed_tags)),
+            'corrected_tags' : fuzzed_tag_map}
+    logger.debug('apis %s', apis)
 
     if apis:
         return json.dumps(apis)
