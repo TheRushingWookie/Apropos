@@ -15,7 +15,7 @@ class proxy():
 	actions = {}
 	json_outputs = {}
 	json_output_name_map = {} # This converts a input name to the api specific name. temperature -> current_temperature
-	json_name_to_path_map = {} #converts api_specific name to the appropriate path within the output json. 
+	json_name_to_path_map = {} #converts api_specific name to the appropriate path within the output json.
 
 	def __init__ (self):
 		self.actions = self.init_actions()
@@ -43,7 +43,7 @@ class proxy():
 		'''Filters the output of an api into what is requested and makes sure the data conforms to SI Units'''
 		filtered_json = {}
 		
-		for i in json_input['output'].keys():
+		for i in json_input['output']:
 
 			try:
 				funct = self.json_outputs[i]
@@ -85,7 +85,7 @@ class proxy():
 		field_names = self.json_output_name_map
 		field_funct_hash = {}
 		name_conversions = {}
-		for key in field_names.keys():
+		for key in field_names:
 			field_funct_hash[key] = self.query_access_funct
 
 		return field_funct_hash
