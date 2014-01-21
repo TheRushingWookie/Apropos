@@ -1,24 +1,14 @@
 #!/usr/bin/python
 
 import json
+import copy
 import requests
 
 domain_name = "http://localhost:5000/"
 
-
-# Pool.map must pickle an importable function,
-# so query_proxy must be global
-def query_proxy(content):
-    """
-    Returns response from proxy.
-    """
-
-    req = requests.post(content['url'] + '?json=',
-                        data=json.dumps(content['query']),
-                        headers={'Content-type': 'application/json',
-                                 'Accept': 'application/json'})
-    response = req.json()
-    return response
+"""
+Public library functions:
+"""
 
 
 def query(query, target=None, wisdom=100, fast=False):
@@ -28,36 +18,6 @@ def query(query, target=None, wisdom=100, fast=False):
              "input": {"zip": 94539},
              "output": {"temperature": "int"}}
     """
-
-    def decide(responses):
-        """
-        Iterates through all responses and returns the best response.
-        Algorithm:
-        1. hash each response for O(1) retrieval
-        2. find key with largest value
-        3. return the response corresponding to the key
-
-        O(n) time with O(n) worst-case space
-        """
-
-        cache = dict()
-
-        # Fill up the hash table
-        for response in responses:
-            hashable_response = frozenset(response.items())
-            if hashable_response in cache:
-                cache[hashable_response] += 1
-            else:
-                cache[hashable_response] = 1
-
-        # Find the most common response from the cache
-        final_response, response_counter = None, 0
-        for response in responses:
-            if response_counter < cache[frozenset(response.items())]:
-                response_counter = cache[frozenset(response.items())]
-                final_response = response
-
-        return final_response
 
     if isinstance(target, basestring):
         query["mode"] = {"target": target}
@@ -75,7 +35,15 @@ def query(query, target=None, wisdom=100, fast=False):
                                  'Accept': 'application/json'})
     response = req.json()
 
+    # response = {u'corrected_tags': {u'Volume': u'Volume',
+    #                                 u'stock_symbol': u'stock_symbol'},
+    #             u'apis': [[u'http://localhost:8000/query']]}
+
     if response:
+        tag_map = response['corrected_tags']
+
+        query = sanitize_tags(query, tag_map)
+
         urls = [url[0] for url in response['apis']]
         contents = [{'url': url, 'query': query} for url in urls]
 
@@ -101,7 +69,7 @@ def query(query, target=None, wisdom=100, fast=False):
                 # on proxy servers that did not return yet.
                 [p.terminate() for p in active_children()]
 
-                return fastest_response
+                return sanitize_tags(fastest_response, tag_map)
 
             else:  # Wisdom mode
                 from multiprocessing import Pool
@@ -152,10 +120,80 @@ def register_api(api_provider, api_name, api_url,
     response = req.json()
     return response
 
+
+"""
+Private helper functions begin below.
+"""
+
+
+def query_proxy(content):
+    """
+    Returns response from proxy.
+    """
+    try:
+        req = requests.post(content['url'] + '?json=',
+                            data=json.dumps(content['query']),
+                            headers={'Content-type': 'application/json',
+                                     'Accept': 'application/json'})
+        response = req.json()
+    except:
+        return {'Status': False}
+    return response
+
+
+def sanitize_tags(query, tag_map):
+    '''Adjust query to use tags in tag_map.'''
+
+    standardized_query = copy.deepcopy(query)
+    for tag in query['input']:
+        standard_tag = tag_map[tag]
+        standardized_query['input'][standard_tag] = \
+            query['input'][tag]
+        standardized_query['input'].pop(tag)
+    for tag in query['output']:
+        standard_tag = tag_map[tag]
+        standardized_query['output'][standard_tag] = \
+            query['output'][tag]
+        standardized_query['output'].pop(tag)
+
+    return query
+
+
+def decide(responses):
+    """
+    Iterates through all responses and returns the best response.
+    Algorithm:
+    1. hash each response for O(1) retrieval
+    2. find key with largest value
+    3. return the response corresponding to the key
+
+    O(n) time with O(n) worst-case space
+    """
+
+    cache = dict()
+
+    # Fill up the hash table
+    for response in responses:
+        hashable_response = frozenset(response.items())
+        if hashable_response in cache:
+            cache[hashable_response] += 1
+        else:
+            cache[hashable_response] = 1
+
+    # Find the most common response from the cache
+    final_response, response_counter = None, 0
+    for response in responses:
+        if response_counter < cache[frozenset(response.items())]:
+            response_counter = cache[frozenset(response.items())]
+            final_response = response
+
+    return final_response
+
+
 if __name__ == "__main__":
     print query({"action": "stocks",
                  "input": {"stock_symbol": "BAC"},
-                 "output": {"Short asRatio": "float"}})
+                 "output": {"Volume": "int"}})
 
     # print register_api_provider('Google', 'google@gmail.com')
 
