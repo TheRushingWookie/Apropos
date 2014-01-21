@@ -36,14 +36,7 @@ def query():
     assert sys.getsizeof(request.json) < 1048576
     assert request.path == '/query'
     assert request.method == 'POST'
-
-    action = request.json['action']
-
-    if action:
-        funct = instance.actions[str(action)]
-        json_output = funct(request.json)
-
-        return instance.filter_outputs(request.json, json_output)
+    instance.query(request.json)
 
 if __name__ == "__main__":
     instance.interface.run(port=int(sys.argv[2]), debug=False)  # 8000, 9000
