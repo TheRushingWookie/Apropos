@@ -34,20 +34,20 @@ def query(query, target=None, wisdom=100, fast=False):
                         data=json.dumps(query),
                         headers={'Content-type': 'application/json',
                                  'Accept': 'application/json'})
-    # response = req.json()
+    response = req.json()
 
-    response = {u'corrected_tags': {u'Volume': u'Volume',
-                                    u'stock_symbol': u'stock_symbol'},
-                u'apis': [[u'http://localhost:8000/query']]}
+    #response = {u'corrected_tags': {u'Volume': u'Volume',
+    #                                u'stock_symbol': u'stock_symbol'},
+    #            u'apis': [[u'http://localhost:8000/query']]}
 
     if response:
         tag_map = response['corrected_tags']
-
+        print response
         query = sanitize_tags(query, tag_map)
 
         urls = [url[0] for url in response['apis']]
         contents = [{'url': url, 'query': query} for url in urls]
-
+        print contents
         if 'wisdom' in query["mode"]:
             if fast:
                 q = Queue(len(urls))
@@ -140,7 +140,6 @@ def query_proxy(content):
 
 def sanitize_tags(query, tag_map):
     '''Adjust query to use tags in tag_map.'''
-
     standardized_query = copy.deepcopy(query)
     for tag in query['input']:
         standard_tag = tag_map[tag]
@@ -188,9 +187,9 @@ def decide(responses):
 
 
 if __name__ == "__main__":
-    print query({"action": "stocks",
-                 "input": {"stock_symbol": "BAC"},
-                 "output": {"Volume": "int"}})
+    print query({"action": "weather",
+                 "input": {"city": 'Bethesda'},
+                 "output": {"temperature": "int"}})
 
     # print register_api_provider('Google', 'google@gmail.com')
 

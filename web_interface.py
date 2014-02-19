@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from flask import Flask, request
+from flask import Flask, request,send_from_directory
 from main import *
 import database
 import sys
@@ -13,12 +13,15 @@ def check_assertions(request, path):
     assert sys.getsizeof(request.json) < 1048576
     assert request.path == path
     assert request.method == 'POST'
-
-
+@app.route("/test")
+def test_html():
+    logger.debug("test page")
+    return send_from_directory('/Users/quinnjarrell/Desktop/Apropos/client_lib','htmltestpage.html')
 @app.route("/query", methods=["POST"])
 def web_query():
+    logger.debug("raw json input %s", request.json)
     check_assertions(request, '/query')
-
+    logger.debug("raw json input %s", request.json)
     tags = tuple(str(tag) for tag in
                  request.json["input"].keys() +
                  request.json["output"].keys())

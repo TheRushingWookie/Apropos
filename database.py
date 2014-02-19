@@ -266,7 +266,7 @@ def find_closest_tags (tags):
 	for i in tags:
 		fuzz_possibilities = process.extractOne(i,choices) #Find the closest matching tag
 		fuzzed = fuzz_possibilities[0]
-		#print " " +str(fuzzed)
+		logger.debug("Initial Tag %s. fuzzed tag %s",i, fuzzed)
 		fuzzed_tags[i] = fuzzed
 	logger.debug("tags %s", tags)
 	logger.debug("choices %s", choices)
