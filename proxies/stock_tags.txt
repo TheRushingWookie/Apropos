@@ -1,0 +1,3 @@
+{
+'YahooStocks': ['stock_symbol', 'ask', 'average_daily_volume', 'bid']
+}

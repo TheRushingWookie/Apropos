@@ -3,6 +3,7 @@
 import json
 import copy
 import requests
+from multiprocessing import Pool, Process, Queue, active_children
 
 domain_name = "http://localhost:5000/"
 
@@ -33,11 +34,11 @@ def query(query, target=None, wisdom=100, fast=False):
                         data=json.dumps(query),
                         headers={'Content-type': 'application/json',
                                  'Accept': 'application/json'})
-    response = req.json()
+    # response = req.json()
 
-    # response = {u'corrected_tags': {u'Volume': u'Volume',
-    #                                 u'stock_symbol': u'stock_symbol'},
-    #             u'apis': [[u'http://localhost:8000/query']]}
+    response = {u'corrected_tags': {u'Volume': u'Volume',
+                                    u'stock_symbol': u'stock_symbol'},
+                u'apis': [[u'http://localhost:8000/query']]}
 
     if response:
         tag_map = response['corrected_tags']
@@ -49,8 +50,6 @@ def query(query, target=None, wisdom=100, fast=False):
 
         if 'wisdom' in query["mode"]:
             if fast:
-                from multiprocessing import Process, Queue, active_children
-
                 q = Queue(len(urls))
 
                 def fast_wrapper(params):
@@ -72,8 +71,6 @@ def query(query, target=None, wisdom=100, fast=False):
                 return sanitize_tags(fastest_response, tag_map)
 
             else:  # Wisdom mode
-                from multiprocessing import Pool
-
                 pool = Pool(len(urls) if len(urls) < wisdom else wisdom)
                 response = pool.map(query_proxy, contents)
 

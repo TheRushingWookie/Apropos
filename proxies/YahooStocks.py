@@ -5,7 +5,7 @@ import proxy
 import logging
 import os
 dir = os.getcwd()
-'''"http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22YHOO%22)%0A%09%09&env=http%3A%2F%2Fdatatables.org%2Falltables.env&format=json"'''
+'''"http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22YHOO%22,%22GOOG%22)%0A%09%09&env=http%3A%2F%2Fdatatables.org%2Falltables.env&format=json"'''
 print dir
 class YahooStocks(proxy.proxy):
 	json_output_name_map = {'Days High': 'DaysHigh', 'Last Trade Date': 'LastTradeDate', 'Book Value': 'BookValue', 'Percent Change From Two Hundred day Moving Average': 'PercentChangeFromTwoHundreddayMovingAverage', 'asking price': 'Ask', 'Fifty day Moving Average': 'FiftydayMovingAverage', 'Change From Year High': 'ChangeFromYearHigh', 'Stock Exchange': 'StockExchange', 'Price Earning Growth Ratio': 'PEGRation', 'EBITDA': 'EBITDA', 'Change From Fifty day Moving Average': 'ChangeFromFiftydayMovingAverage', 'Average Daily Volume': 'AverageDailyVolume', 'Percent Change From Fifty day Moving Average': 'PercentChangeFromFiftydayMovingAverage', 'Last Trade Time': 'LastTradeTime', 'Change in percent':'ChangeinPercent','Bid': 'Bid', 'Price To Book Ratio': 'PriceBook', 'Previous Close Price': 'PreviousClosePrice', 'Open Price': 'OpenPrice', 'Volume': 'Volume', 'Short Ratio': 'ShortRatio', 'Change From Year Low': 'ChangeFromYearLow','Earnings per Share': 'earningspershare', 'Price Earnings Ratio': 'PERation', 'Year Range': 'YearRange', 'Percent Change From Year High': 'PercebtChangeFromYearHigh', 'Days Low': 'DaysLow', 'Stock Name': 'Name', 'Year High': 'YearHigh', 'Two Hundred day Moving Average': 'TwoHundreddayMovingAverage', 'Percent Change From Year Low': 'PercentChangeFromYearLow', 'Price To Sales Ratio': 'PriceSales', 'Year Low': 'YearLow', 'Market Capitalization': 'MarketCapitalization', 'Change From Two Hundred day Moving Average': 'ChangeFromTwoHundreddayMovingAverage', 'Symbol': 'Symbol','Last Trade Price':'LastTradePriceOnly','Change': 'ChangeRealtime','Change in Realtime':'ChangeRealtime'}
@@ -23,8 +23,7 @@ class YahooStocks(proxy.proxy):
 					conversation_factor = converation_chars[i]
 					return int(val[:found]) * conversation_factor
 		return val
-	def get_stock_info(self,json_input):
-		
+	def get_stock_info(self, json_input):
 		base_url = 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22'
 		part2 = '%22)%0A%09%09&env=http%3A%2F%2Fdatatables.org%2Falltables.env&format=json'
 		json_output = ""
@@ -39,11 +38,60 @@ class YahooStocks(proxy.proxy):
 			json_output = opener.open(base_url).read()
 		except:
 			raise Exception("Output is " +  json_output)
-		
-		
-		print str(json_output)
-		return json.loads(json_output)
 
+		print str(json_output)
+		standard_dict = standardize_output(json_output)
+        final = {}
+        for key in json:
+            final[key] = standard_dict[key]
+		return final
+
+
+	def standardize_output(response):
+		response = response['query']['results']['quote']
+        if isinstance(response, dict):
+            standard_output = {'price_to_book_ratio': response['PriceBook'],
+                               'price_earning_growth_ratio': response['PEGRation'],
+                               'average_daily_volume': response['AverageDailyVolume'],
+                               'year_high': response['YearHigh'],
+                               'change_in_realtime': response['ChangeRealtime'],
+                               'year_range': response['YearRange'],
+                               'ebitda': response['EBITDA'],
+                               'stock_exchange': response['StockExchange'],
+                               'change_from_year_low': response['ChangeFromYearLow'],
+                               'change_from_year_high': response['ChangeFromYearHigh'],
+                               'change_from_two_hundred_day_moving_average': response['ChangeFromTwoHundreddayMovingAverage'],
+                               'percent_change_from_year_high': response['PercebtChangeFromYearHigh'],
+                               'price_to_sales_ratio': response['PriceSales'],
+                               'change': response['ChangeRealtime'],
+                               'price_earnings_ratio': response['PERation'],
+                               'fifty_day_moving_average': response['FiftydayMovingAverage'],
+                               'stock_symbol': response['Symbol'],
+                               'book_value': response['BookValue'],
+                               'year_low': response['YearLow'],
+                               'asking_price': response['Ask'],
+                               'change_from_fifty_day_moving_average': response['ChangeFromFiftydayMovingAverage'],
+                               'volume': response['Volume'],
+                               'two_hundred_day_moving_average': response['TwoHundreddayMovingAverage'],
+                               'open_price': response['OpenPrice'],
+                               'last_trade_date': response['LastTradeDate'],
+                               'market_capitalization': response['MarketCapitalization'],
+                               'change_in_percent': response['ChangeinPercent'],
+                               'stock_name': response['Name'],
+                               'percent_change_from_year_low': response['PercentChangeFromYearLow'],
+                               'last_trade_price': response['LastTradePriceOnly'],
+                               'bid': response['Bid'],
+                               'earnings_per_share': response['earningspershare'],
+                               'previous_close_price': response['PreviousClosePrice'],
+                               'short_ratio': response['ShortRatio'],
+                               'percent_change_from_two_hundred_day_moving_average': response['       PercentChangeFromTwoHundreddayMovingAverage'],
+                               'days_low': response['DaysLow'],
+                               'last_trade_time': response['LastTradeTime'],
+                               'days_high': response['DaysHigh'],
+                               'percent_change_from_fifty_day_moving_average': response['PercentChangeFromFiftydayMovingAverage']}
+		for key in response:
+			if key == 'symbol':
+				standard_output['stock_symbol'] == response[key]
 
 
 	def init_actions(self):
