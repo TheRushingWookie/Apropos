@@ -143,13 +143,11 @@ def sanitize_tags(query, tag_map):
     standardized_query = copy.deepcopy(query)
     for tag in query['input']:
         standard_tag = tag_map[tag]
-        standardized_query['input'][standard_tag] = \
-            query['input'][tag]
+        standardized_query['input'][standard_tag] = query['input'][tag]
         standardized_query['input'].pop(tag)
     for tag in query['output']:
         standard_tag = tag_map[tag]
-        standardized_query['output'][standard_tag] = \
-            query['output'][tag]
+        standardized_query['output'][standard_tag] = query['output'][tag]
         standardized_query['output'].pop(tag)
 
     return query
@@ -168,8 +166,10 @@ def decide(responses):
 
     cache = dict()
 
+    print responses
     # Fill up the hash table
     for response in responses:
+        
         hashable_response = frozenset(response.items())
         if hashable_response in cache:
             cache[hashable_response] += 1
@@ -188,7 +188,7 @@ def decide(responses):
 
 if __name__ == "__main__":
     print query({"action": "weather",
-                 "input": {"city": 'Bethesda'},
+                 "input": {"city": 'Urbana'},
                  "output": {"temperature": "int"}})
 
     # print register_api_provider('Google', 'google@gmail.com')
