@@ -21,7 +21,7 @@ def test_html():
 def web_query():
     logger.debug("raw json input %s", request.json)
     check_assertions(request, '/query')
-    logger.debug("raw json input %s", request.json)
+    logger.debug("raw json input %s", request.json  )
     tags = tuple(str(tag) for tag in
                  request.json["input"].keys() +
                  request.json["output"].keys())
@@ -82,8 +82,9 @@ def web_register_api_provider():
         return json.dumps({"Status": True})
     else:
         return json.dumps({"Status": False})
-
-
+@app.route("/jsclient.js",methods=['GET'])
+def js_web_client():
+    return send_from_directory('/Users/quinnjarrell/Desktop/Apropos/client_lib','javascript_client.js')
 @app.route("/register_api", methods=["POST"])
 def web_register_api():
     check_assertions(request, '/register_api')
