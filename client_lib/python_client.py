@@ -141,19 +141,17 @@ def query_proxy(content):
 def sanitize_tags(query, tag_map):
     '''Adjust query to use tags in tag_map.'''
 
-    standardized_query = copy.deepcopy(query)
+    standardized_query = {'input':{}, 'output':{}, 'action': ''}
     for tag in query['input']:
         standard_tag = tag_map[tag]
         standardized_query['input'][standard_tag] = \
             query['input'][tag]
-        standardized_query['input'].pop(tag)
     for tag in query['output']:
         standard_tag = tag_map[tag]
         standardized_query['output'][standard_tag] = \
             query['output'][tag]
-        standardized_query['output'].pop(tag)
 
-    return query
+    return standardized_query
 
 
 def decide(responses):
