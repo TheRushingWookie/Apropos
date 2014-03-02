@@ -42,9 +42,9 @@ def query(query, target=None, wisdom=100, fast=False):
 
     if response:
         tag_map = response['corrected_tags']
-        print response
+        print query
         query = sanitize_tags(query, tag_map)
-
+        print query
         urls = [url[0] for url in response['apis']]
         contents = [{'url': url, 'query': query} for url in urls]
         print contents
@@ -150,8 +150,8 @@ def sanitize_tags(query, tag_map):
         standardized_query['output'][standard_tag] = query['output'][tag]
         standardized_query['output'].pop(tag)
 
-    return query
-
+    return standardized_query
+#print sanitize_tags({'action': 'weather', 'input': {'citya': 'Urbana'}, 'mode': {'wisdom': 100}, 'output': {'temperatured': 'int'}},{u'city': u'citya', u'temperatured': u'temperature', u'citya': u'city', u'temperature': u'temperatured'})
 
 def decide(responses):
     """
@@ -188,8 +188,8 @@ def decide(responses):
 
 if __name__ == "__main__":
     print query({"action": "weather",
-                 "input": {"city": 'Urbana'},
-                 "output": {"temperature": "int"}})
+                 "input": {"citya": 'Urbana'},
+                 "output": {"temperatured": "int"}})
 
     # print register_api_provider('Google', 'google@gmail.com')
 

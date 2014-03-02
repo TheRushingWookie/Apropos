@@ -10,11 +10,15 @@ import DBClasses
 from Analytics import user,api_analytics
 from flask.ext.sqlalchemy import SQLAlchemy
 from main import *
-#+strftime("%a, %d %b %Y %X +0000", gmtime()) +
+
+
 conn = sqlite3.connect(os.getcwd() + '/API' +'.db' ,check_same_thread=False)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
 def set_logger(logger_instance):
+	''' Sets up a logging instance in the global var logger'''
 	global logger
 	logger = logger_instance
 	logger.warn('new logger')
@@ -28,8 +32,11 @@ def fetchall_to_list(query_rows,col):
 def fetch_single_val(query_rows,col):
 	for row in query_rows:
 		return row[col]
+
 id_one_selector = '''select id from (?) where (?) = (?)'''
 id_two_selector = '''select id from (?) where (?) = (?) and (?) = (?)'''
+
+
 def find_id(table_name, query_dict):
 	'''Finds the id of the row with matching query_dict for the table. Returns id'''
 	global id_one_selector,id_two_selector
