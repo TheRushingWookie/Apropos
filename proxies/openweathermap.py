@@ -3,9 +3,9 @@ import urllib2
 import sys
 import proxy
 class openweathermap(proxy.proxy):
-	json_output_name_map = {'temperature': 'temp', 'current_temperature' : 'temp', 'current temperature' : 'temp','max_temp' : 'temp_max','min_temp' : 'temp_min','humidity' : 'humidity', 'pressure':'pressure', 'speed' : 'speed', 'wind_direction' : 'deg', 'cloudiness' : 'cloudiness'}
+
 							
-	json_name_to_path_map = {'temp': ['main', 'temp'], 'temp_max': ['main', 'temp_max'], 'humidity': ['main', 'humidity'], 'pressure': ['main', 'pressure'], 'temp_min': ['main', 'temp_min'], 'cloudiness': ['clouds', 'all'], 'speed': ['wind', 'speed'], 'deg': ['wind', 'deg']}
+	json_name_to_path_map = {'temperature': ['main', 'temp'], 'temperature max': ['main', 'temp_max'], 'humidity': ['main', 'humidity'], 'pressure': ['main', 'pressure'], 'temperature minimum': ['main', 'temp_min'], 'cloudiness': ['clouds', 'all'], 'windspeed': ['wind', 'speed'], 'wind direction': ['wind', 'deg']}
 	
 
 	def get_weather(self,json_input):
@@ -18,8 +18,8 @@ class openweathermap(proxy.proxy):
 		self.logger.debug('base_url %s', base_url)
 		req = urllib2.Request(base_url)
 		req.add_unredirected_header('User-Agent', 'Apropos')
-		json_output = urllib2.urlopen(req).read()
-		
+		json_output = urllib2.urlopen(req).read()	
+		self.logger.debug("json output is %s", json_output)
 		return json.loads(json_output)
 			
 

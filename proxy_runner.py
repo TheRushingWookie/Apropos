@@ -86,7 +86,6 @@ def query():
     #io_json_dict = json.loads(io_json_dict)
     logger.debug('Json is %s', io_json_dict)
     action = io_json_dict['action']
-
     print action
     if action:
         print(str(instance.actions))

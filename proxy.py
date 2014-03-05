@@ -16,6 +16,7 @@ class proxy():
 	def __init__ (self):
 		self.actions = self.init_actions()
 		self.json_outputs = self.init_outputs()
+		self.logger.debug(self.json_outputs)
 	def standard_type_converter(self,val,val_type):
 		'''Converts all standard types such as integer, string'''
 		val_type = val_type.lower()
@@ -44,7 +45,7 @@ class proxy():
 			try:
 				funct = self.json_outputs[i]
 
-				self.logger.debug(funct)
+				self.logger.debug(self.json_outputs)
 				converted_val = funct(output,i)
 				#print "Filterd " + converted_val
 				filtered_json[i] = self.standard_type_converter(converted_val,json_input['output'][i])
@@ -59,7 +60,6 @@ class proxy():
 		return json.dumps(filtered_json)
 
 	def query_access_funct(self,json_output,field):
-		field = self.json_output_name_map[field]
 		path = self.json_name_to_path_map[field]
 		self.logger.debug("path %s", path)
 		self.logger.debug("field %s",field)
@@ -78,9 +78,10 @@ class proxy():
 
 	def init_outputs(self):
 
-		field_names = self.json_output_name_map
+		field_names = self.json_name_to_path_map
 		field_funct_hash = {}
 		name_conversions = {}
+		self.logger.debug("fieldadwds %s ",field_names)
 		for key in field_names.keys():
 			field_funct_hash[key] = self.query_access_funct
 
