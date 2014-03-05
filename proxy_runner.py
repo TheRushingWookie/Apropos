@@ -59,7 +59,7 @@ def crossdomain(origin=None, methods=None, headers=None,
     return decorator
 
 def run_proxy(proxy_name):
-    global actions, json_outputs
+    global actions, json_outputs 
     directory = os.path.abspath(inspect.getsourcefile(run_proxy))
     directory = os.path.dirname(directory)
     sys.path.append(directory)

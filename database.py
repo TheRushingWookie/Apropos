@@ -195,17 +195,17 @@ def get_authent_info(api_endpoint_name):
 	return False
 
 def add_tags_to_endpoint(tags,c,api_id):
-	logger.debug('tags are %s',tags)
+	#logger.debug('tags are %s',tags)
 	for tag in tags: 
 		#loop through tags inserting each into the tags table and make a link via the tagmap table. If the tag already exists, link the pre-existing tag.
-		logger.debug('''inserting tag %s''',tags)
+		#logger.debug('''inserting tag %s''',tag)
 		prev_tag = fetch_single_val(c.execute('''select id from tags where tag_name = (?)''', (tag,)).fetchall(),0)
 		if prev_tag:
 			tag_id = prev_tag
-			logger.debug('''add_api_endpoint:Found previous tag''')
+			#logger.debug('''add_api_endpoint:Found previous tag''')
 		else:
 			c.execute('''insert into tags values (NULL,?)''', (tag,))
-			logger.debug('''inserted tag %s''', tag)
+			#logger.debug('''inserted tag %s''', tag)
 			tag_id = fetch_single_val(c.execute('''select id from tags where tag_name = (?)''', (tag,)).fetchall(),0)
 			
 		c.execute('''insert into tagmap values (NULL, ?,?)''', (tag_id,api_id))
@@ -214,7 +214,7 @@ def print_table(table_name):
 	c = conn.cursor()
 	results = c.execute('''select * from ''' + table_name ).fetchall()
 	return results
-#print print_table('api_endpoints')
+print print_table('api_endpoints')
 def update_tags(api_provider_name,api_endpoint_name,owner_key,new_tags):
 	'''Lets a proxy reconfigure its tags'''
 	owner_verified = verify_owner(api_provider_name,owner_key)
@@ -241,16 +241,18 @@ def test_update_tags():
 	'''Test function for update_tags'''
 	prev_tag_ids = tagmap.query.filter_by(api_id=1).all()
 	api_endpoint = api_endpoints.query.filter_by(id=1).one()
+	tags_to_be_updated = ['test_tag1','test_tag2','test_tag31']
 	prev_tags = []
 	for prev_tag in prev_tag_ids:
 		prev_tags += [tags.query.filter_by(id=prev_tag.tag_id).one().tag_name,]
 	logger.debug('Prev tags are %s', prev_tags)
-	update_tags(api_endpoint.api_provider.api_provider_name,api_endpoint.api_name,api_endpoint.owner_key,['test_tag1','test_tag2','test_tag3'])
+	update_tags(api_endpoint.api_provider.api_provider_name,api_endpoint.api_name,api_endpoint.owner_key,tags_to_be_updated)
 	new_tag_ids = tagmap.query.filter_by(api_id=1).all()
 	new_tags = []
 	for new_tag in new_tag_ids:
 		new_tags += [tags.query.filter_by(id=new_tag.tag_id).one().tag_name,]
 	logger.debug('New tags are %s',new_tags)
+	assert new_tags == tags_to_be_updated
 	#db.session.delete()
 test_update_tags()
 #update_tags('Example_provider','test_api3','69f7b096-859b-4778-9ee0-189bdb728b64',)

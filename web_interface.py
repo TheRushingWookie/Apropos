@@ -99,6 +99,19 @@ def web_register_api():
         return json.dumps({"Status": True})
     else:
         return json.dumps({"Status": False})
+@app.route("/update_tags", methods=["POST"])
+def web_update_tags():
+    logger.debug('Got json %s',request.json)
+    check_assertions(request, '/update_tags')
+    tags = request.json['tags']
+    
+    database.update_tags(
+                        request.json['api_provider'],
+                        request.json['api_name'],
+                        request.json['provider_key'],
+                        tags
+                        )
+    return 'success'
 
 
 @app.route("/drop_api", methods=["POST"])

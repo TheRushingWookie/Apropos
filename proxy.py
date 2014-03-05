@@ -9,14 +9,23 @@ import traceback
 import inspect
 from os.path import *
 import sys
+import requests
 
 class proxy():
 	interface = Flask(__name__)
 	logger = interface.logger
+	provider_key = 'bd932248-5f4d-4b75-9afe-7e69c2f1504f'
+	provider_name = 'Example_provider'
+	domain_name = "http://localhost:5000/"
+	api_name = 'test_api3'
+	tags = ['tag1','tag2','tags3','tags3']
+	
+	#update_tags(api_provider_name,api_endpoint_name,owner_key,new_tags)
 	def __init__ (self):
 		self.actions = self.init_actions()
 		self.json_outputs = self.init_outputs()
 		self.logger.debug(self.json_outputs)
+		self.update_tags(self.tags)
 	def standard_type_converter(self,val,val_type):
 		'''Converts all standard types such as integer, string'''
 		val_type = val_type.lower()
@@ -58,7 +67,10 @@ class proxy():
 				return str(traceback.format_exc())
 				return json.dumps({'wrong_outputs':i})
 		return json.dumps(filtered_json)
-
+	def update_tags(self,tags):
+		payload = {'api_provider':self.provider_name,'provider_key':self.provider_key,'api_name':self.api_name,'tags':self.tags}
+		headers = {'content-type': 'application/json'}
+		r = requests.post(self.domain_name + 'update_tags',data=json.dumps(payload),headers=headers)
 	def query_access_funct(self,json_output,field):
 		path = self.json_name_to_path_map[field]
 		self.logger.debug("path %s", path)
@@ -77,11 +89,10 @@ class proxy():
 
 
 	def init_outputs(self):
-
 		field_names = self.json_name_to_path_map
 		field_funct_hash = {}
 		name_conversions = {}
-		self.logger.debug("fieldadwds %s ",field_names)
+		self.logger.debug("fields %s ",field_names)
 		for key in field_names.keys():
 			field_funct_hash[key] = self.query_access_funct
 
