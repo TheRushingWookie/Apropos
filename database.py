@@ -319,7 +319,7 @@ def create_test_db ():
 	print cnn.execute('select * from api_endpoints').fetchall()
 
 	#print_table('api_endpoints')
-#print print_table('api_providers')
+logger.debug('api_endpoints table is %s ',print_table('api_endpoints')) 
 #create_test_db()
 def find_closest_tags (tags):
 	c = conn.cursor()
