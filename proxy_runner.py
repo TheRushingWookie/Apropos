@@ -66,15 +66,13 @@ def run_proxy(proxy_name):
     mod = importlib.import_module("proxies." + proxy_name)
 
     print str(mod.__name__)
-    try:
-        proxy_instance = getattr(mod, proxy_name)()
-        print proxy_instance
-        actions = proxy_instance.init_actions()
-        return proxy_instance
-    except AttributeError:
-        print 'function not found ' + "init_actions"
 
-instance = run_proxy("openweathermap")  # YahooStocks, WebServiceXStockQuotes
+    proxy_instance = getattr(mod, proxy_name)()
+    print proxy_instance
+    actions = proxy_instance.init_actions()
+    return proxy_instance
+
+instance = run_proxy("TimeAPI")  # YahooStocks, WebServiceXStockQuotes
 logger = instance.interface.logger
 
 @instance.interface.route("/query", methods=['POST', 'OPTIONS'])

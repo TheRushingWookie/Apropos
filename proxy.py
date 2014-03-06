@@ -14,18 +14,42 @@ import requests
 class proxy():
 	interface = Flask(__name__)
 	logger = interface.logger
-	provider_key = 'bd932248-5f4d-4b75-9afe-7e69c2f1504f'
-	provider_name = 'Example_provider'
+	output_tag_paths = []
+	provider_key = ''
+	provider_name = ''
 	domain_name = "http://localhost:5000/"
-	api_name = 'test_api3'
-	tags = ['tag1','tag2','tags3','tags3']
-	
+	api_name = ''
+	tags = []
+	input_tags = []
+	config_file_path = os.getcwd() + "/json_config.json"
 	#update_tags(api_provider_name,api_endpoint_name,owner_key,new_tags)
+	def load_config(self):
+		'''Loads a json config file to provide initialization values for provider_key, provider_name, domain_name, api_name.'''
+		with open(self.config_file_path, 'r') as json_file:
+			json_string = json_file.read()
+			json_config = json.loads(json_string)
+			print json_config
+			self.provider_key = json_config['provider_key']
+			self.provider_name = json_config['provider_name']
+			self.domain_name = json_config['domain_name']
+			self.api_name = json_config['api_name']
+	def write_config(self):
+		'''Writes a json config file which includes provider_key, provider_name, domain_name, api_name.'''
+		with open(self.config_file_path, 'w') as json_file:
+			json_data = {'provider_key':self.provider_key,'provider_name':self.provider_name,'domain_name':self.domain_name,'api_name':self.api_name}
+			json_file.write(json.dumps(json_data, json_file, indent=4))
+			json.dumps(json_data,json_file)
 	def __init__ (self):
 		self.actions = self.init_actions()
 		self.json_outputs = self.init_outputs()
 		self.logger.debug(self.json_outputs)
+		tags = self.output_tag_paths.keys() + self.input_tags
+		self.load_config()
 		self.update_tags(self.tags)
+	
+			
+
+
 	def standard_type_converter(self,val,val_type):
 		'''Converts all standard types such as integer, string'''
 		val_type = val_type.lower()
@@ -72,7 +96,7 @@ class proxy():
 		headers = {'content-type': 'application/json'}
 		r = requests.post(self.domain_name + 'update_tags',data=json.dumps(payload),headers=headers)
 	def query_access_funct(self,json_output,field):
-		path = self.json_name_to_path_map[field]
+		path = self.output_tag_paths[field]
 		self.logger.debug("path %s", path)
 		self.logger.debug("field %s",field)
 		self.logger.debug('json_output %s', json_output)
@@ -89,7 +113,7 @@ class proxy():
 
 
 	def init_outputs(self):
-		field_names = self.json_name_to_path_map
+		field_names = self.output_tag_paths
 		field_funct_hash = {}
 		name_conversions = {}
 		self.logger.debug("fields %s ",field_names)

@@ -3,6 +3,10 @@ import xml.etree.ElementTree as ET
 import proxy
 import HTMLParser
 class WebServiceXStockQuotes(proxy.proxy):
+	provider_key = 'ffdf55ee-ebb5-4fb7-86e2-3932cb6764b6'
+	provider_name = ''
+	domain_name = "http://localhost:5000/"
+	api_name = 'WebServiceXStockQuotes'
 	def __init__ (self):
 		self.actions = self.init_actions()
 		self.json_outputs = self.init_outputs()
@@ -29,4 +33,3 @@ class WebServiceXStockQuotes(proxy.proxy):
 
 	def init_actions(self):
 		return {'stocks':self.get_stock_info}
-	

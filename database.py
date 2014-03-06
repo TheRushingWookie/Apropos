@@ -215,6 +215,14 @@ def print_table(table_name):
 	results = c.execute('''select * from ''' + table_name ).fetchall()
 	return results
 print print_table('api_endpoints')
+def get_tags(api_endpoint_name):
+	api_id = api_endpoints.query.filter_by(api_name=api_endpoint_name).first().id
+	tag_links = tagmap.query.filter_by(api_id=api_id).all()
+	tags_list = []
+	for tag_link in tag_links:
+		tags_list += [tags.query.filter_by(id=tag_link.tag_id).one().tag_name]
+	print tags_list
+get_tags('YahooWeather')
 def update_tags(api_provider_name,api_endpoint_name,owner_key,new_tags):
 	'''Lets a proxy reconfigure its tags'''
 	owner_verified = verify_owner(api_provider_name,owner_key)
@@ -254,7 +262,7 @@ def test_update_tags():
 	logger.debug('New tags are %s',new_tags)
 	assert new_tags == tags_to_be_updated
 	#db.session.delete()
-test_update_tags()
+#test_update_tags()
 #update_tags('Example_provider','test_api3','69f7b096-859b-4778-9ee0-189bdb728b64',)
 #logger.debug(api_providers.query.filter_by(id=1).first().id)
 
@@ -298,7 +306,7 @@ def create_test_db ():
 	test_api_id = register_api_provider("Example_provider", "example@example.com")
 	logger.debug(print_table("api_providers"))
 	#test_api_id = u'4150c9e7-c1a6-4511-bca1-7cb5bb3a724e'
-	logger.debug('''added api %s with status %s''', 'test-api3', add_api_endpoint("Example_provider", "test_api3" ,'http://localhost:7000/query' ,test_api_id ,'weather',('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'),"{}"))
+	logger.debug('''added api %s with status %s''', 'openweathermap', add_api_endpoint("Example_provider", "openweathermap" ,'http://localhost:7000/query' ,test_api_id ,'weather',('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'),"{}"))
 	logger.debug('''added api %s with status %s''', 'YahooStocks', add_api_endpoint ("Example_provider", "YahooStocks" ,'http://localhost:8000/query' ,test_api_id ,'stocks',('stock_symbol','Two Hundred day Moving Average', 'Days High', 'Price To Sales Ratio', 'Last Trade Date', 'Book Value', 'Percent Change From Year High', 'Previous Close Price', 'asking price', 'Fifty day Moving Average', 'Days Low', 'Symbol', 'Change From Year High', 'Stock Name', 'Year High', 'Stock Exchange', 'Price Earning Growth Ratio', 'EBITDA', 'Change From Fifty day Moving Average', 'Average Daily Volume', 'Percent Change From Fifty day Moving Average', 'Last Trade Time', 'Year Low', 'Bid', 'Price To Book Ratio', 'Percent Change From Two Hundred day Moving Average', 'Open Price', 'Volume', 'Percent Change From Year Low', 'Short Ratio', 'Change From Year Low', 'Price Earnings Ratio', 'Change From Two Hundred day Moving Average', 'Year Range', 'Market Capitalization'),"{}"))
 	logger.debug('''added api %s with status %s''', 'WebServiceXStocks',  add_api_endpoint("Example_provider", "WebServiceXStocks" ,'http://localhost:9000/query' ,test_api_id ,'stocks',('stock_symbol', 'Days High', 'Last Trade Date', 'Price Earnings Ratio', 'Year Range', 'P-E', 'Low', 'Open Price', 'MktCap', 'Earns', 'Last Trade Time', 'Symbol', 'Previous Close Price', 'Change in percent', 'Volume', 'PreviousClose', 'Days Low', 'Date', 'Change', 'Stock Name', 'Time', 'PercentageChange', 'High', 'Market Capitalization', 'Change in Realtime', 'AnnRange', 'Last Trade Price', 'Open', 'Earnings per Share'),'{"username": "testuser", "apikey": "testkey"}'))
 	add_authent_info ( "Example_provider","WebServiceXStocks", '''{"username":"Quinn","apikey":"123"}''') #should succeed
@@ -352,5 +360,6 @@ def query_api(category,tags):
 		filtered_rows.append([row[0]])
 	logger.debug('''filtered_rows %s''', filtered_rows)
 	return filtered_rows
+print query_api('weather',('bullshit','temperature'))
 #print print_table('api_authent_terms')
 #print ( " got a"  + str(query_api('stocks',('Symbol','Volume'))))
