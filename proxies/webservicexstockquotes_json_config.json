@@ -1,0 +1,7 @@
+{
+    "provider_name": "Example_provider", 
+    "provider_key": "dea8f5be-58fe-4f16-bc88-9a158855f938", 
+    "domain_name": "http://localhost:5000/", 
+    "api_name": "WebServiceXStocks",
+    "port":9000
+}
