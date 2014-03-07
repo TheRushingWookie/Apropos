@@ -10,123 +10,194 @@ import inspect
 from os.path import *
 import sys
 import requests
+from datetime import timedelta
+from flask import make_response, request, current_app
+from functools import update_wrapper
+def crossdomain(origin=None, methods=None, headers=None,
+                max_age=21600, attach_to_all=True,
+                automatic_options=True):
+    if methods is not None:
+        methods = ', '.join(sorted(x.upper() for x in methods))
+    if headers is not None and not isinstance(headers, basestring):
+        headers = ', '.join(x.upper() for x in headers)
+    if not isinstance(origin, basestring):
+        origin = ', '.join(origin)
+    if isinstance(max_age, timedelta):
+        max_age = max_age.total_seconds()
 
+    def get_methods():
+        if methods is not None:
+            return methods
+
+        options_resp = current_app.make_default_options_response()
+        return options_resp.headers['allow']
+
+    def decorator(f):
+        def wrapped_function(*args, **kwargs):
+            if automatic_options and request.method == 'OPTIONS':
+                resp = current_app.make_default_options_response()
+            else:
+                resp = make_response(f(*args, **kwargs))
+            if not attach_to_all and request.method != 'OPTIONS':
+                return resp
+
+            h = resp.headers
+
+            h['Access-Control-Allow-Origin'] = origin
+            h['Access-Control-Allow-Methods'] = get_methods()
+            h['Access-Control-Max-Age'] = str(max_age)
+            if headers is not None:
+                h['Access-Control-Allow-Headers'] = headers
+            return resp
+
+        f.provide_automatic_options = False
+        return update_wrapper(wrapped_function, f)
+    return decorator
 class proxy():
-	interface = Flask(__name__)
-	logger = interface.logger
-	output_tag_paths = []
-	provider_key = ''
-	provider_name = ''
-	domain_name = "http://localhost:5000/"
-	api_name = ''
-	tags = []
-	input_tags = []
-	config_file_path = os.getcwd() + "/json_config.json"
-	#update_tags(api_provider_name,api_endpoint_name,owner_key,new_tags)
-	def load_config(self):
-		'''Loads a json config file to provide initialization values for provider_key, provider_name, domain_name, api_name.'''
-		with open(self.config_file_path, 'r') as json_file:
-			json_string = json_file.read()
-			json_config = json.loads(json_string)
-			print json_config
-			self.provider_key = json_config['provider_key']
-			self.provider_name = json_config['provider_name']
-			self.domain_name = json_config['domain_name']
-			self.api_name = json_config['api_name']
-	def write_config(self):
-		'''Writes a json config file which includes provider_key, provider_name, domain_name, api_name.'''
-		with open(self.config_file_path, 'w') as json_file:
-			json_data = {'provider_key':self.provider_key,'provider_name':self.provider_name,'domain_name':self.domain_name,'api_name':self.api_name}
-			json_file.write(json.dumps(json_data, json_file, indent=4))
-			json.dumps(json_data,json_file)
-	def __init__ (self):
-		self.actions = self.init_actions()
-		self.json_outputs = self.init_outputs()
-		self.logger.debug(self.json_outputs)
-		tags = self.output_tag_paths.keys() + self.input_tags
-		self.load_config()
-		self.update_tags(self.tags)
-	
-			
+    interface = Flask(__name__)
+    logger = interface.logger
+    output_tag_paths = []
+    provider_key = ''
+    provider_name = ''
+    domain_name = "http://localhost:5000/"
+    api_name = ''
+    tags = []
+    port = None
+    input_tags = []
+    config_file_path = os.getcwd() + "/json_config.json"
+    #update_tags(api_provider_name,api_endpoint_name,owner_key,new_tags)
+    
+
+    @interface.route("/query", methods=['POST', 'OPTIONS'])
+    @crossdomain(origin='*')
+    def query():
+
+        io_json_dict = request.json
+        #return str(instance.actions)
+        #io_json_dict = json.loads(io_json_dict)
+        logger.debug('Json is %s', io_json_dict)
+        action = io_json_dict['action']
+        print action
+        if action:
+            print(str(instance.actions))
+            funct = instance.actions[str(action)]
+
+            logger.debug("Funct selected is %s", str(funct))
+            json_output =  funct(io_json_dict)
+            logger.debug("json_output %s", str(json_output))
+            callback = request.args.get('callback')
+            if callback:
+                return '{0}({1})'.format(callback, instance.filter_outputs(io_json_dict,json_output))
+            else: return instance.filter_outputs(io_json_dict,json_output)
+        return "hello"  
+    def load_config(self):
+        '''Loads a json config file to provide initialization values for provider_key, provider_name, domain_name, api_name.'''
+        with open(self.config_file_path, 'r') as json_file:
+            json_string = json_file.read()
+            print json_string
+            json_config = json.loads(json_string)
+            
+            self.provider_key = json_config['provider_key']
+            self.provider_name = json_config['provider_name']
+            self.domain_name = json_config['domain_name']
+            self.api_name = json_config['api_name']
+            self.port = json_config['port']
+    def write_configa(self):
+        '''Writes a json config file which includes provider_key, provider_name, domain_name, api_name.'''
+        with open(self.config_file_path, 'w') as json_file:
+            json_data = {'provider_key':self.provider_key,'port':self.port,'provider_name':self.provider_name,'domain_name':self.domain_name,'api_name':self.api_name}
+            json_file.write(json.dumps(json_data, json_file, indent=4))
+            json.dumps(json_data,json_file)
+    def __init__ (self):
+        self.actions = self.init_actions()
+        self.json_outputs = self.init_outputs()
+        self.logger.debug(self.json_outputs)
+        tags = self.output_tag_paths.keys() + self.input_tags
+
+    
+            
 
 
-	def standard_type_converter(self,val,val_type):
-		'''Converts all standard types such as integer, string'''
-		val_type = val_type.lower()
-		self.logger.debug( "val_type " + val_type + ' ' + str(val))
-		try:
-			if val_type == 'int' or val_type == 'integer':
-				if val.find('.'):
-					return int(float(val))	
-				return int(val)
-			elif val_type == 'string':
-				return str(val)
-			elif val_type == 'float':
-				return float(val)
-		except:
-			print "Bad conversion of " + str(val) + " + with type " + str(val_type) #  Might want to make str(val) keep escaped characters
-		return val
-	def custom_type_converter(self,val,val_type):
-			'''Stub function to let conversions of individuation'''
-			return val
-	def filter_outputs (self,json_input,output):
-		'''Filters the output of an api into what is requested and makes sure the data conforms to SI Units'''
-		filtered_json = {}
+    def standard_type_converter(self,val,val_type):
+        '''Converts all standard types such as integer, string'''
+        val_type = val_type.lower()
+        self.logger.debug( "val_type " + val_type + ' ' + str(val))
+        try:
+            if val_type == 'int' or val_type == 'integer':
+                if val.find('.'):
+                    return int(float(val))  
+                return int(val)
+            elif val_type == 'string':
+                return str(val)
+            elif val_type == 'float':
+                return float(val)
+        except:
+            print "Bad conversion of " + str(val) + " + with type " + str(val_type) #  Might want to make str(val) keep escaped characters
+        return val
+    def custom_type_converter(self,val,val_type):
+            '''Stub function to let conversions of individuation'''
+            return val
+    def filter_outputs (self,json_input,output):
+        '''Filters the output of an api into what is requested and makes sure the data conforms to SI Units'''
+        filtered_json = {}
 
-		for i in json_input['output'].keys():
+        for i in json_input['output'].keys():
 
-			try:
-				funct = self.json_outputs[i]
+            try:
+                funct = self.json_outputs[i]
 
-				self.logger.debug(self.json_outputs)
-				converted_val = funct(output,i)
-				#print "Filterd " + converted_val
-				filtered_json[i] = self.standard_type_converter(converted_val,json_input['output'][i])
-				#print "Filterd " + str(type(filtered_json[i]))
-				filtered_json[i] = self.custom_type_converter(filtered_json[i],json_input['output'][i])
-				#print "Filterd 2 " + str(type(filtered_json[i]))
-				#print str(type(converted_val))
-			except Exception,e:
-				self.logger.debug(str(e))
-				return str(traceback.format_exc())
-				return json.dumps({'wrong_outputs':i})
-		return json.dumps(filtered_json)
-	def update_tags(self,tags):
-		payload = {'api_provider':self.provider_name,'provider_key':self.provider_key,'api_name':self.api_name,'tags':self.tags}
-		headers = {'content-type': 'application/json'}
-		r = requests.post(self.domain_name + 'update_tags',data=json.dumps(payload),headers=headers)
-	def query_access_funct(self,json_output,field):
-		path = self.output_tag_paths[field]
-		self.logger.debug("path %s", path)
-		self.logger.debug("field %s",field)
-		self.logger.debug('json_output %s', json_output)
-		if json_output != None:
-			for i in path:
-				if i in json_output:
-					json_output = json_output[i]
-				else:
-					self.logger.debug('Path to %s is messed up. %s ',i,json_output)
-					return "Path to json field is messed up"
-			return json_output
-		else:
-			return "Null"
+                self.logger.debug(self.json_outputs)
+                converted_val = funct(output,i)
+                #print "Filterd " + converted_val
+                filtered_json[i] = self.standard_type_converter(converted_val,json_input['output'][i])
+                #print "Filterd " + str(type(filtered_json[i]))
+                filtered_json[i] = self.custom_type_converter(filtered_json[i],json_input['output'][i])
+                #print "Filterd 2 " + str(type(filtered_json[i]))
+                #print str(type(converted_val))
+            except Exception,e:
+                self.logger.debug(str(e))
+                return str(traceback.format_exc())
+                return json.dumps({'wrong_outputs':i})
+        return json.dumps(filtered_json)
+    def update_tags(self,tags):
+        payload = {'api_provider':self.provider_name,'provider_key':self.provider_key,'api_name':self.api_name,'tags':self.tags}
+        headers = {'content-type': 'application/json'}
+        r = requests.post(self.domain_name + 'update_tags',data=json.dumps(payload),headers=headers)
+    def query_access_funct(self,json_output,field):
+        path = self.output_tag_paths[field]
+        self.logger.debug("path %s", path)
+        self.logger.debug("field %s",field)
+        self.logger.debug('json_output %s', json_output)
+        if json_output != None:
+            for i in path:
+                if i in json_output:
+                    json_output = json_output[i]
+                else:
+                    self.logger.debug('Path to %s is messed up. %s ',i,json_output)
+                    return "Path to json field is messed up"
+            return json_output
+        else:
+            return "Null"
 
 
-	def init_outputs(self):
-		field_names = self.output_tag_paths
-		field_funct_hash = {}
-		name_conversions = {}
-		self.logger.debug("fields %s ",field_names)
-		for key in field_names.keys():
-			field_funct_hash[key] = self.query_access_funct
+    def init_outputs(self):
+        self.load_config()
+        self.update_tags(self.tags)
+        field_names = self.output_tag_paths
+        field_funct_hash = {}
+        name_conversions = {}
+        self.logger.debug("fields %s ",field_names)
+        for key in field_names.keys():
+            field_funct_hash[key] = self.query_access_funct
 
-		return field_funct_hash
-	def init_actions(self):
-		return None
-	def get_funct(self,funct_name,package_name):
-		try:
-			func = getattr(sys.modules[package_name], funct_name)
-		except AttributeError:
-			print 'function not found ' + funct_name
-		else:
-			return func
+        return field_funct_hash
+    def init_actions(self):
+
+        return None
+    def get_funct(self,funct_name,package_name):
+        try:
+            func = getattr(sys.modules[package_name], funct_name)
+        except AttributeError:
+            print 'function not found ' + funct_name
+        else:
+            return func

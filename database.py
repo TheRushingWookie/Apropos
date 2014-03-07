@@ -214,7 +214,7 @@ def print_table(table_name):
 	c = conn.cursor()
 	results = c.execute('''select * from ''' + table_name ).fetchall()
 	return results
-print print_table('api_endpoints')
+#print print_table('api_endpoints')
 def get_tags(api_endpoint_name):
 	api_id = api_endpoints.query.filter_by(api_name=api_endpoint_name).first().id
 	tag_links = tagmap.query.filter_by(api_id=api_id).all()
@@ -222,7 +222,7 @@ def get_tags(api_endpoint_name):
 	for tag_link in tag_links:
 		tags_list += [tags.query.filter_by(id=tag_link.tag_id).one().tag_name]
 	print tags_list
-get_tags('YahooWeather')
+#get_tags('YahooWeather')
 def update_tags(api_provider_name,api_endpoint_name,owner_key,new_tags):
 	'''Lets a proxy reconfigure its tags'''
 	owner_verified = verify_owner(api_provider_name,owner_key)
@@ -297,6 +297,7 @@ def add_api_endpoint (api_provider_name, api_name, api_url, owner_key, category,
 	else:
 		logger.warning('''add_api_endpoint:Owner not verified''')
 		return False
+
 test_api_id = ""
 def create_test_db ():
 	global test_api_id
@@ -309,6 +310,7 @@ def create_test_db ():
 	logger.debug('''added api %s with status %s''', 'openweathermap', add_api_endpoint("Example_provider", "openweathermap" ,'http://localhost:7000/query' ,test_api_id ,'weather',('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'),"{}"))
 	logger.debug('''added api %s with status %s''', 'YahooStocks', add_api_endpoint ("Example_provider", "YahooStocks" ,'http://localhost:8000/query' ,test_api_id ,'stocks',('stock_symbol','Two Hundred day Moving Average', 'Days High', 'Price To Sales Ratio', 'Last Trade Date', 'Book Value', 'Percent Change From Year High', 'Previous Close Price', 'asking price', 'Fifty day Moving Average', 'Days Low', 'Symbol', 'Change From Year High', 'Stock Name', 'Year High', 'Stock Exchange', 'Price Earning Growth Ratio', 'EBITDA', 'Change From Fifty day Moving Average', 'Average Daily Volume', 'Percent Change From Fifty day Moving Average', 'Last Trade Time', 'Year Low', 'Bid', 'Price To Book Ratio', 'Percent Change From Two Hundred day Moving Average', 'Open Price', 'Volume', 'Percent Change From Year Low', 'Short Ratio', 'Change From Year Low', 'Price Earnings Ratio', 'Change From Two Hundred day Moving Average', 'Year Range', 'Market Capitalization'),"{}"))
 	logger.debug('''added api %s with status %s''', 'WebServiceXStocks',  add_api_endpoint("Example_provider", "WebServiceXStocks" ,'http://localhost:9000/query' ,test_api_id ,'stocks',('stock_symbol', 'Days High', 'Last Trade Date', 'Price Earnings Ratio', 'Year Range', 'P-E', 'Low', 'Open Price', 'MktCap', 'Earns', 'Last Trade Time', 'Symbol', 'Previous Close Price', 'Change in percent', 'Volume', 'PreviousClose', 'Days Low', 'Date', 'Change', 'Stock Name', 'Time', 'PercentageChange', 'High', 'Market Capitalization', 'Change in Realtime', 'AnnRange', 'Last Trade Price', 'Open', 'Earnings per Share'),'{"username": "testuser", "apikey": "testkey"}'))
+	logger.debug('''added api %s with status %s''', 'TimeAPI',  add_api_endpoint("Example_provider", "TimeAPI" ,'http://localhost:10000/query' ,test_api_id ,'time',('time',),'{}'))
 	add_authent_info ( "Example_provider","WebServiceXStocks", '''{"username":"Quinn","apikey":"123"}''') #should succeed
 	add_authent_info ( "Example_provider","WebServiceXStocks", '''{"apikey":"123"}''') # prints Missing json key username in json {"apikey":"123"} for api WebServiceXStocks
 	logger.debug("authent info for WebServiceXStocks: %s", get_authent_info("WebServiceXStocks"))
@@ -319,8 +321,9 @@ def create_test_db ():
 	print cnn.execute('select * from api_endpoints').fetchall()
 
 	#print_table('api_endpoints')
-logger.debug('api_endpoints table is %s ',print_table('api_endpoints')) 
 #create_test_db()
+#logger.debug('api_endpoints table is %s ',print_table('api_endpoints')) 
+print print_table('api_endpoints')
 def find_closest_tags (tags):
 	c = conn.cursor()
 	fuzzed_tags = {}

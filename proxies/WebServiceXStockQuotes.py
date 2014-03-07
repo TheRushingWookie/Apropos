@@ -1,12 +1,17 @@
 import requests
 import xml.etree.ElementTree as ET
 import proxy
+import os
 import HTMLParser
 class WebServiceXStockQuotes(proxy.proxy):
+	config_file_path = os.getcwd() + "/proxies/webservicexstockquotes_json_config.json"
 	provider_key = 'ffdf55ee-ebb5-4fb7-86e2-3932cb6764b6'
 	provider_name = ''
 	domain_name = "http://localhost:5000/"
 	api_name = 'WebServiceXStockQuotes'
+	output_tag_paths = {'Days High': ['High'], 'Last Trade Date': ['Date'], 'Price Earnings Ratio': ['P-E'], 'Year Range': ['AnnRange'], 'P-E': ['P-E'], 'Low': ['Low'], 'Open Price': ['Open'], 'MktCap': ['MktCap'], 'Earns': ['Earns'], 'Last Trade Time': ['Time'], 'Symbol': ['Symbol'], 'Previous Close Price': ['PreviousClose'], 'Change in percent': ['PercentageChange'], 'Volume': ['Volume'], 'PreviousClose': ['PreviousClose'], 'Days Low': ['Low'], 'Date': ['Date'], 'Change': ['Change'], 'Stock Name': ['Name'], 'Time': ['Time'], 'PercentageChange': ['PercentageChange'], 'High': ['High'], 'Market Capitalization': ['MktCap'], 'Change in Realtime': ['Change'], 'AnnRange': ['AnnRange'], 'Last Trade Price': ['Last'], 'Open': ['Open'], 'Earnings per Share': ['Earns']}
+
+	input_tags = ['stock_symbol',]
 	def __init__ (self):
 		self.actions = self.init_actions()
 		self.json_outputs = self.init_outputs()

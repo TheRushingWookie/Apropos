@@ -189,7 +189,7 @@ def decide(responses):
 if __name__ == "__main__":
     print query({"action": "weather",
                  "input": {"citya": 'Urbana'},
-                 "output": {"temperatured": "int",'bullshit':"int"}})
+                 "output": {"temperatured": "int"}})
 
     # print register_api_provider('Google', 'google@gmail.com')
 

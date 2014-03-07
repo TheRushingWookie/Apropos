@@ -4,10 +4,12 @@ import urllib2
 import sys
 import proxy
 import logging
+import os
 import requests
 '''http://www.timeapi.org/utc/now'''
 
 class TimeAPI(proxy.proxy):
+	config_file_path = os.getcwd() + "/proxies/time_json_config.json"
 	output_tag_paths = {"timezone": ["timezone"]}
 	input_tags = ['timezone']
 

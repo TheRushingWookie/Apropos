@@ -2,5 +2,6 @@
     "provider_name": "Example_provider", 
     "provider_key": "bd932248-5f4d-4b75-9afe-7e69c2f1504f", 
     "domain_name": "http://localhost:5000/", 
-    "api_name": "TimeAPI"
+    "api_name": "TimeAPI",
+    "port":8000
 }

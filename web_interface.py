@@ -21,7 +21,7 @@ def test_html():
 def web_query():
     logger.debug("raw json input %s", request.json)
     check_assertions(request, '/query')
-    logger.debug("raw json input %s", request.json  )
+    logger.debug("raw json input %s", request.json)
     tags = tuple(str(tag) for tag in
                  request.json["input"].keys() +
                  request.json["output"].keys())
