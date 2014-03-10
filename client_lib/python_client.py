@@ -4,14 +4,17 @@ import json
 import copy
 import requests
 from multiprocessing import Pool, Process, Queue, active_children
-
+from hashlib import sha1
+import hmac
+import base64
+from collections import OrderedDict
 domain_name = "http://localhost:5000/"
 
 """
 Public library functions:
 """
 
-
+provider_key  = '268aaf3f-5c50-45d3-bf8d-4134747e2420'
 def query(query, target=None, wisdom=100, fast=False):
     """
     Example:
@@ -97,26 +100,34 @@ def register_api_provider(api_provider, contact_info):
     response = req.json()
     return response
 
-
+def get_key_hmac(base_string):
+    assert (provider_key)
+    print base_string
+    return base64.urlsafe_b64encode(hmac.new(provider_key,base_string,sha1).digest())
+def hmac_json_string(json_input_unordered):
+    json_input = OrderedDict(sorted(json_input_unordered.items(),key=lambda t: t[0]))
+    hmac = get_key_hmac(json.dumps(json_input))
+    json_input['hmac'] = hmac
+    return json.dumps(json_input)  
 def register_api(api_provider, api_name, api_url,
-                 provider_key, tags, api_login_info):
+                 provider_key, tags, api_login_info,category):
     """
     Allows an API provider to register an API.
     """
-
-    req = requests.post(domain_name + "register_api?",
-                        data=json.dumps({'api_provider': api_provider,
+    json_text = hmac_json_string({'api_provider': api_provider,
                                          'api_name': api_name,
                                          'api_url': api_url,
-                                         'provider_key': provider_key,
                                          'tags': tags,
                                          'api_login_info': api_login_info,
-                                         'category': 'test'}),
+                                         'category': category})
+    print json_text
+    req = requests.post(domain_name + "register_api?",
+                        data=json_text,
                         headers={'Content-type': 'application/json',
                                  'Accept': 'application/json'})
     response = req.json()
     return response
-
+register_api('Example_provider','openweathermap','http://localhost:7000/query',provider_key,('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'),"{}",'weather')
 
 """
 Private helper functions begin below.

@@ -1,4 +1,3 @@
-
 from flask import Flask
 from flask import request
 import json
@@ -13,6 +12,36 @@ import requests
 from datetime import timedelta
 from flask import make_response, request, current_app
 from functools import update_wrapper
+import hmac
+from collections import OrderedDict
+from hashlib import sha1
+import base64
+class RoutingData(object):
+    def __init__(self, args, kwargs):
+        super(RoutingData, self).__init__()
+        self.args = args
+        self.kwargs = kwargs
+def route(*args, **kwargs):
+    def wrap(fn):
+        l = getattr(fn, '_routing_data', [])
+        l.append(RoutingData(args, kwargs))
+        fn._routing_data = l
+        return fn
+    return wrap
+
+
+class SuperFlask(Flask):
+    def __init__(self, import_name):
+        super(SuperFlask, self).__init__(import_name)
+        self.endpoint_prefix = None
+        for name in dir(self):
+            if hasattr(getattr(self, name), ("_routing_data")):
+                fn = getattr(self, name)
+                rds = fn._routing_data
+                for rd in rds:
+                    self.route(*rd.args, **rd.kwargs)(fn)
+
+
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
                 automatic_options=True):
@@ -53,9 +82,7 @@ def crossdomain(origin=None, methods=None, headers=None,
         f.provide_automatic_options = False
         return update_wrapper(wrapped_function, f)
     return decorator
-class proxy():
-    interface = Flask(__name__)
-    logger = interface.logger
+class proxy(SuperFlask):
     output_tag_paths = []
     provider_key = ''
     provider_name = ''
@@ -68,27 +95,27 @@ class proxy():
     #update_tags(api_provider_name,api_endpoint_name,owner_key,new_tags)
     
 
-    @interface.route("/query", methods=['POST', 'OPTIONS'])
+    @route("/query", methods=['POST', 'OPTIONS'])
     @crossdomain(origin='*')
-    def query():
+    def query(self):
 
         io_json_dict = request.json
         #return str(instance.actions)
         #io_json_dict = json.loads(io_json_dict)
-        logger.debug('Json is %s', io_json_dict)
+        #self.logger.debug('Json is %s', io_json_dict)
         action = io_json_dict['action']
         print action
         if action:
-            print(str(instance.actions))
-            funct = instance.actions[str(action)]
+            print(str(action))
+            funct = self.actions[str(action)]
 
-            logger.debug("Funct selected is %s", str(funct))
+            self.logger.debug("Funct selected is %s", str(funct))
             json_output =  funct(io_json_dict)
-            logger.debug("json_output %s", str(json_output))
+            self.logger.debug("json_output %s", str(json_output))
             callback = request.args.get('callback')
             if callback:
-                return '{0}({1})'.format(callback, instance.filter_outputs(io_json_dict,json_output))
-            else: return instance.filter_outputs(io_json_dict,json_output)
+                return '{0}({1})'.format(callback, self.filter_outputs(io_json_dict,json_output))
+            else: return self.filter_outputs(io_json_dict,json_output)
         return "hello"  
     def load_config(self):
         '''Loads a json config file to provide initialization values for provider_key, provider_name, domain_name, api_name.'''
@@ -102,20 +129,21 @@ class proxy():
             self.domain_name = json_config['domain_name']
             self.api_name = json_config['api_name']
             self.port = json_config['port']
-    def write_configa(self):
+    def write_config(self):
         '''Writes a json config file which includes provider_key, provider_name, domain_name, api_name.'''
         with open(self.config_file_path, 'w') as json_file:
-            json_data = {'provider_key':self.provider_key,'port':self.port,'provider_name':self.provider_name,'domain_name':self.domain_name,'api_name':self.api_name}
+            json_data = {'port':self.port,'provider_name':self.provider_name,'domain_name':self.domain_name,'api_name':self.api_name}
             json_file.write(json.dumps(json_data, json_file, indent=4))
             json.dumps(json_data,json_file)
-    def __init__ (self):
+    def __init__ (self,import_name):
+        super(proxy, self).__init__(import_name)
         self.actions = self.init_actions()
         self.json_outputs = self.init_outputs()
         self.logger.debug(self.json_outputs)
         tags = self.output_tag_paths.keys() + self.input_tags
 
-    
-            
+        
+
 
 
     def standard_type_converter(self,val,val_type):
@@ -140,7 +168,6 @@ class proxy():
     def filter_outputs (self,json_input,output):
         '''Filters the output of an api into what is requested and makes sure the data conforms to SI Units'''
         filtered_json = {}
-
         for i in json_input['output'].keys():
 
             try:
@@ -159,10 +186,20 @@ class proxy():
                 return str(traceback.format_exc())
                 return json.dumps({'wrong_outputs':i})
         return json.dumps(filtered_json)
+
+    def get_key_hmac(self,base_string):
+        assert (self.provider_key)
+        return base64.urlsafe_b64encode(hmac.new(self.provider_key.encode('ascii'),base_string.encode('ascii'),sha1).digest())
+    def hmac_json_string(self,json_input_unordered):
+        json_input = OrderedDict(sorted(json_input_unordered.items(),key=lambda t: t[0]))
+        hmac = self.get_key_hmac(json.dumps(json_input))
+        json_input['hmac'] = hmac
+        return json.dumps(json_input)  
     def update_tags(self,tags):
-        payload = {'api_provider':self.provider_name,'provider_key':self.provider_key,'api_name':self.api_name,'tags':self.tags}
+        payload = {'api_provider':self.provider_name,'api_name':self.api_name,'tags':self.tags}
+        payload_string = self.hmac_json_string(payload)
         headers = {'content-type': 'application/json'}
-        r = requests.post(self.domain_name + 'update_tags',data=json.dumps(payload),headers=headers)
+        r = requests.post(self.domain_name + 'update_tags',data=payload_string,headers=headers)
     def query_access_funct(self,json_output,field):
         path = self.output_tag_paths[field]
         self.logger.debug("path %s", path)

@@ -13,7 +13,7 @@ class openweathermap(proxy.proxy):
             Usage:
             print get_weather({'input': {'city': 'Bethesda, MD'}})
             """
-
+            self.logger.debug("triggered")
             url = 'http://api.openweathermap.org/data/2.5/weather?'
 
             # Client has city as input

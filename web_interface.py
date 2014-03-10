@@ -5,6 +5,7 @@ from main import *
 import database
 import sys
 import json
+from collections import OrderedDict
 
 interface = Flask(__name__)
 
@@ -88,14 +89,15 @@ def js_web_client():
 @app.route("/register_api", methods=["POST"])
 def web_register_api():
     check_assertions(request, '/register_api')
-
+    logger.debug('raw data %s', request.data)
     if database.add_api_endpoint(request.json['api_provider'],
                                  request.json['api_name'],
                                  request.json['api_url'],
-                                 request.json['provider_key'],
+                                 
                                  request.json['category'],
                                  list(map(str, request.json['tags'])),
-                                 request.json['api_login_info']):
+                                 request.json['api_login_info'],
+                                 json.loads(request.data, object_pairs_hook=OrderedDict)):
         return json.dumps({"Status": True})
     else:
         return json.dumps({"Status": False})
@@ -108,8 +110,8 @@ def web_update_tags():
     database.update_tags(
                         request.json['api_provider'],
                         request.json['api_name'],
-                        request.json['provider_key'],
-                        tags
+                        tags,
+                        json.loads(request.data)
                         )
     return 'success'
 
