@@ -1,11 +1,10 @@
-#!/usr/bin/python
-
-from flask import Flask, request,send_from_directory
+from flask import Flask, request, send_from_directory
+from collections import OrderedDict
 from main import *
 import database
 import sys
 import json
-from collections import OrderedDict
+
 
 interface = Flask(__name__)
 
@@ -14,10 +13,14 @@ def check_assertions(request, path):
     assert sys.getsizeof(request.json) < 1048576
     assert request.path == path
     assert request.method == 'POST'
+
+
 @app.route("/test")
 def test_html():
     logger.debug("test page")
-    return send_from_directory('/Users/quinnjarrell/Desktop/Apropos/client_lib','htmltestpage.html')
+    return send_from_directory('/Users/quinnjarrell/Desktop/Apropos/client_lib', 'htmltestpage.html')
+
+
 @app.route("/query", methods=["POST"])
 def web_query():
     logger.debug("raw json input %s", request.json)
@@ -27,15 +30,16 @@ def web_query():
                  request.json["input"].keys() +
                  request.json["output"].keys())
 
-    logger.debug("tags %s",tags)
+    logger.debug("tags %s", tags)
     fuzzed_tag_map = database.find_closest_tags(tags)
     logger.debug("Fuzzed tag map %s", fuzzed_tag_map)
     fuzzed_tags = [fuzzed_tag_map[key] for key in fuzzed_tag_map.keys()]
     logger.debug("Fuzzed tags %s", fuzzed_tags)
     for tag in fuzzed_tag_map.keys():
         fuzzed_tag_map[fuzzed_tag_map[tag]] = tag
-    apis = {'apis': database.query_api(request.json["action"], tuple(fuzzed_tags)),
-            'corrected_tags' : fuzzed_tag_map}
+    apis = {
+        'apis': database.query_api(request.json["action"], tuple(fuzzed_tags)),
+        'corrected_tags': fuzzed_tag_map}
     logger.debug('apis %s', apis)
 
     if apis:
@@ -83,9 +87,13 @@ def web_register_api_provider():
         return json.dumps({"Status": True})
     else:
         return json.dumps({"Status": False})
-@app.route("/jsclient.js",methods=['GET'])
+
+
+@app.route("/jsclient.js", methods=['GET'])
 def js_web_client():
-    return send_from_directory('/Users/quinnjarrell/Desktop/Apropos/client_lib','javascript_client.js')
+    return send_from_directory('/Users/quinnjarrell/Desktop/Apropos/client_lib', 'javascript_client.js')
+
+
 @app.route("/register_api", methods=["POST"])
 def web_register_api():
     check_assertions(request, '/register_api')
@@ -93,7 +101,7 @@ def web_register_api():
     if database.add_api_endpoint(request.json['api_provider'],
                                  request.json['api_name'],
                                  request.json['api_url'],
-                                 
+
                                  request.json['category'],
                                  list(map(str, request.json['tags'])),
                                  request.json['api_login_info'],
@@ -101,18 +109,20 @@ def web_register_api():
         return json.dumps({"Status": True})
     else:
         return json.dumps({"Status": False})
+
+
 @app.route("/update_tags", methods=["POST"])
 def web_update_tags():
-    logger.debug('Got json %s',request.json)
+    logger.debug('Got json %s', request.json)
     check_assertions(request, '/update_tags')
     tags = request.json['tags']
-    
+
     database.update_tags(
-                        request.json['api_provider'],
-                        request.json['api_name'],
-                        tags,
-                        json.loads(request.data)
-                        )
+        request.json['api_provider'],
+        request.json['api_name'],
+        tags,
+        json.loads(request.data)
+    )
     return 'success'
 
 
