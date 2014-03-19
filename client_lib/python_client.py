@@ -211,12 +211,12 @@ Some example calls
 '''
 
 
-if __name__ == "__main__":
-    print query({"action": "weather",
-                 "input": {"city": 'Urbana'},
-                 "output": {"temperatured": "int"}})
+# if __name__ == "__main__":
+#     print query({"action": "weather",
+#                  "input": {"city": 'Urbana'},
+#                  "output": {"temperatured": "int"}})
 
-    # print register_api_provider('Google', 'google@gmail.com')
+#     # print register_api_provider('Google', 'google@gmail.com')
 
-    # print register_api("Google", "Stocks", "stocks.google.com",
-    #                    "123", ['stocks'], "idk")
+#     # print register_api("Google", "Stocks", "stocks.google.com",
+#     #                    "123", ['stocks'], "idk")
