@@ -68,7 +68,6 @@ def find_id(table_name, query_dict):
 
 def create_apropos_tables():
     '''Sets up database tables.'''
-    #conn = sqlite3.connect(dir + database_name)
     # Create table
     c = conn.cursor()
     c.execute('''CREATE TABLE tags
@@ -121,7 +120,7 @@ def create_apropos_tables():
 
 
 def generate_uuid():
-    '''Used to generate a provider key. The key serves as a password for each api_provider_name. TODO: SWITCH TO HMAC SO NO NEED TO PASS THE KEY BACK AND FORTH'''
+    '''Used to generate a provider key. The key serves as a password for each api_provider_name.'''
     return str(uuid.uuid4())
 
 
@@ -231,8 +230,7 @@ def add_api_authent_terms(api_provider_name, api_endpoint_name, owner_key, terms
     c = conn.cursor()
     c.execute('''insert into api_authent_terms values (NULL,?,?,?,?)''',
               (time, owner_key, terms, endpoint_id))
-    # Finish this later. Needs to check for previous terms. If they exist, use
-    # UPDATE statement. Else use select
+
 
 
 def get_authent_info(api_endpoint_name):
@@ -259,18 +257,14 @@ def get_authent_info(api_endpoint_name):
 
 
 def add_tags_to_endpoint(tags, c, api_id):
-    #logger.debug('tags are %s',tags)
     for tag in tags:
         # loop through tags inserting each into the tags table and make a link via the tagmap table. If the tag already exists, link the pre-existing tag.
-        #logger.debug('''inserting tag %s''',tag)
         prev_tag = fetch_single_val(
             c.execute('''select id from tags where tag_name = (?)''', (tag,)).fetchall(), 0)
         if prev_tag:
             tag_id = prev_tag
-            #logger.debug('''add_api_endpoint:Found previous tag''')
         else:
             c.execute('''insert into tags values (NULL,?)''', (tag,))
-            #logger.debug('''inserted tag %s''', tag)
             tag_id = fetch_single_val(
                 c.execute('''select id from tags where tag_name = (?)''', (tag,)).fetchall(), 0)
 
