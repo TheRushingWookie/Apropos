@@ -7,7 +7,7 @@ import hmac
 import base64
 from os.path import *
 from datetime import timedelta
-from flask import make_response, request, current_app
+from flask import Flask, make_response, request, current_app
 from functools import update_wrapper
 from collections import OrderedDict
 from hashlib import sha1
