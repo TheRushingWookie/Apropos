@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import json
 import copy
 import requests
@@ -8,13 +6,17 @@ from hashlib import sha1
 import hmac
 import base64
 from collections import OrderedDict
+
+
 domain_name = "http://localhost:5000/"
+provider_key = '268aaf3f-5c50-45d3-bf8d-4134747e2420'
+
 
 """
 Public library functions:
 """
 
-provider_key  = '268aaf3f-5c50-45d3-bf8d-4134747e2420'
+
 def query(query, target=None, wisdom=100, fast=False):
     """
     Example:
@@ -38,10 +40,6 @@ def query(query, target=None, wisdom=100, fast=False):
                         headers={'Content-type': 'application/json',
                                  'Accept': 'application/json'})
     response = req.json()
-
-    #response = {u'corrected_tags': {u'Volume': u'Volume',
-    #                                u'stock_symbol': u'stock_symbol'},
-    #            u'apis': [[u'http://localhost:8000/query']]}
 
     if response:
         tag_map = response['corrected_tags']
@@ -100,15 +98,20 @@ def register_api_provider(api_provider, contact_info):
     response = req.json()
     return response
 
+
 def get_key_hmac(base_string):
     assert (provider_key)
     print base_string
     return base64.urlsafe_b64encode(hmac.new(provider_key,base_string,sha1).digest())
+
+
 def hmac_json_string(json_input_unordered):
     json_input = OrderedDict(sorted(json_input_unordered.items(),key=lambda t: t[0]))
     hmac = get_key_hmac(json.dumps(json_input))
     json_input['hmac'] = hmac
-    return json.dumps(json_input)  
+    return json.dumps(json_input)
+
+
 def register_api(api_provider, api_name, api_url,
                  provider_key, tags, api_login_info,category):
     """
@@ -127,7 +130,10 @@ def register_api(api_provider, api_name, api_url,
                                  'Accept': 'application/json'})
     response = req.json()
     return response
-register_api('Example_provider','openweathermap','http://localhost:7000/query',provider_key,('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'),"{}",'weather')
+
+
+# register_api('Example_provider','openweathermap','http://localhost:7000/query',provider_key,('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'),"{}",'weather')
+
 
 """
 Private helper functions begin below.
@@ -162,7 +168,10 @@ def sanitize_tags(query, tag_map):
         standardized_query['output'].pop(tag)
 
     return standardized_query
-#print sanitize_tags({'action': 'weather', 'input': {'citya': 'Urbana'}, 'mode': {'wisdom': 100}, 'output': {'temperatured': 'int'}},{u'city': u'citya', u'temperatured': u'temperature', u'citya': u'city', u'temperature': u'temperatured'})
+
+
+# print sanitize_tags({'action': 'weather', 'input': {'citya': 'Urbana'}, 'mode': {'wisdom': 100}, 'output': {'temperatured': 'int'}},{u'city': u'citya', u'temperatured': u'temperature', u'citya': u'city', u'temperature': u'temperatured'})
+
 
 def decide(responses):
     """
@@ -180,7 +189,7 @@ def decide(responses):
     print responses
     # Fill up the hash table
     for response in responses:
-        
+
         hashable_response = frozenset(response.items())
         if hashable_response in cache:
             cache[hashable_response] += 1
@@ -197,9 +206,14 @@ def decide(responses):
     return final_response
 
 
+'''
+Some example calls
+'''
+
+
 if __name__ == "__main__":
     print query({"action": "weather",
-                 "input": {"citya": 'Urbana'},
+                 "input": {"city": 'Urbana'},
                  "output": {"temperatured": "int"}})
 
     # print register_api_provider('Google', 'google@gmail.com')
