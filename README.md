@@ -11,29 +11,22 @@ All outputs are in [SI](https://en.wikipedia.org/wiki/International_System_of_Un
 Example JSON input:
 
     {
+      "action": "weather",
+      "input": {
 
-    "action": "weather",
+          "city": "Boston"
 
-    "input": {
+      },
+      "output": {
+          "temperature": "int"
 
-        "city": "Boston"
-
-    },
-
-    "output": {
-
-        "temperature": "int"
-
-    }
-
+      }
     }
 
 Example JSON output
 
     {
-
-    "temperature": 279.19
-
+      "temperature": 279.19
     }
 
 
