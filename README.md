@@ -13,13 +13,10 @@ Example JSON input:
     {
       "action": "weather",
       "input": {
-
           "city": "Boston"
-
       },
       "output": {
           "temperature": "int"
-
       }
     }
 
