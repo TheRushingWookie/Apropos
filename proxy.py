@@ -110,7 +110,7 @@ class proxy(SuperFlask):
         if action:
             print(str(action))
             funct = self.actions[str(action)]
-
+            print "request.json %s" % (request.json)
             self.logger.debug("Funct selected is %s", str(funct))
             json_output = funct(io_json_dict)
             self.logger.debug("json_output %s", str(json_output))
@@ -145,10 +145,12 @@ class proxy(SuperFlask):
 
     def __init__(self, import_name):
         super(proxy, self).__init__(import_name)
+        self.tags = self.output_tag_paths.keys() + self.input_tags
+        self.logger.warn("tags are %s", self.tags)
         self.actions = self.init_actions()
         self.json_outputs = self.init_outputs()
         self.logger.debug(self.json_outputs)
-        tags = self.output_tag_paths.keys() + self.input_tags
+
 
     def standard_type_converter(self, val, val_type):
         '''Converts all standard types such as integer, string'''
@@ -210,6 +212,7 @@ class proxy(SuperFlask):
     def update_tags(self, tags):
         payload = {'api_provider': self.provider_name,
                    'api_name': self.api_name, 'tags': self.tags}
+        print self.tags
         payload_string = self.hmac_json_string(payload)
         headers = {'content-type': 'application/json'}
         r = requests.post(
@@ -234,6 +237,7 @@ class proxy(SuperFlask):
 
     def init_outputs(self):
         self.load_config()
+        self.logger.warning("tags are %s", self.tags)
         self.update_tags(self.tags)
         field_names = self.output_tag_paths
         field_funct_hash = {}

@@ -286,7 +286,7 @@ def get_tags(api_endpoint_name):
     for tag_link in tag_links:
         tags_list += [tags.query.filter_by(id=tag_link.tag_id).one().tag_name]
     print tags_list
-
+print get_tags('openweathermap')
 
 def update_tags(api_provider_name, api_endpoint_name, new_tags, json_input):
     '''Lets a proxy reconfigure its tags'''
@@ -336,7 +336,7 @@ def test_update_tags():
     logger.debug('New tags are %s', new_tags)
     assert new_tags == tags_to_be_updated
     # db.session.delete()
-
+#test_update_tags()
 
 def add_api_endpoint(api_provider_name, api_name, api_url, category, tags, api_authent_terms, json_input):
     '''Adds an api endpoint to the db and adds the tags and api_authent_terms to their respective tables. Returns true or false depending on success.'''

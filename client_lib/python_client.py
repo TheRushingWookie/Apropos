@@ -48,7 +48,7 @@ def query(query, target=None, wisdom=100, fast=False):
         print query
         urls = [url[0] for url in response['apis']]
         contents = [{'url': url, 'query': query} for url in urls]
-        print contents
+       
         if 'wisdom' in query["mode"]:
             if fast:
                 q = Queue(len(urls))
@@ -72,6 +72,7 @@ def query(query, target=None, wisdom=100, fast=False):
                 return sanitize_tags(fastest_response, tag_map)
 
             else:  # Wisdom mode
+                print "urls returned %s" % (urls)
                 pool = Pool(len(urls) if len(urls) < wisdom else wisdom)
                 response = pool.map(query_proxy, contents)
 
@@ -158,15 +159,16 @@ def query_proxy(content):
 def sanitize_tags(query, tag_map):
     '''Adjust query to use tags in tag_map.'''
     standardized_query = copy.deepcopy(query)
+    print "start %s" % (standardized_query)
     for tag in query['input']:
         standard_tag = tag_map[tag]
         standardized_query['input'][standard_tag] = query['input'][tag]
-        standardized_query['input'].pop(tag)
+        #standardized_query['input'].pop(tag)
     for tag in query['output']:
         standard_tag = tag_map[tag]
         standardized_query['output'][standard_tag] = query['output'][tag]
-        standardized_query['output'].pop(tag)
-
+        #standardized_query['output'].pop(tag)
+    print "end %s" % (standardized_query)
     return standardized_query
 
 
@@ -211,10 +213,10 @@ Some example calls
 '''
 
 
-# if __name__ == "__main__":
-#     print query({"action": "weather",
-#                  "input": {"city": 'Urbana'},
-#                  "output": {"temperatured": "int"}})
+if __name__ == "__main__":
+     print query({"action": "weather",
+                  "input": {"city": 'Boston'},
+                  "output": {"temperature": "int"}})
 
 #     # print register_api_provider('Google', 'google@gmail.com')
 

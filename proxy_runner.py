@@ -6,7 +6,7 @@ import os
 import sys
 import inspect
 import importlib
-
+import logging
 
 proxies = {}
 
@@ -33,6 +33,12 @@ for proxy_name in proxy_list:
     proxies[proxy_name] = run_proxy(proxy_name)
     if not logger:
         logger = proxies[proxy_name].logger
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+        logger.warn("WTf")
 
 
 def start_proxy(**kwargs):
@@ -44,6 +50,7 @@ def start_proxy(**kwargs):
 if __name__ == "__main__":
     for proxy_name in proxies:
         proxy = proxies[proxy_name]
+        
         if len(proxy_list) > 1:
             p = Process(target=start_proxy,
                         kwargs={'proxy': proxy,
@@ -51,4 +58,6 @@ if __name__ == "__main__":
             p.start()
 
         else:
+            
             proxy.run(port=proxy.port, debug=True)
+            #logger = proxy.logger

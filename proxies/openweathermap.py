@@ -15,7 +15,8 @@ class openweathermap(proxy.proxy):
             """
             self.logger.debug("triggered")
             url = 'http://api.openweathermap.org/data/2.5/weather?'
-
+            payload = None
+            print json_input
             # Client has city as input
             if 'city' in json_input['input']:
                 payload = {'q': json_input['input']['city']}
