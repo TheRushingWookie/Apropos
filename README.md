@@ -8,7 +8,7 @@ Apropos takes a JSON input and returns a JSON output with exactly what you want 
 
 Example JSON input:
 
-{
+    {
 
     "action": "weather",
 
@@ -24,15 +24,15 @@ Example JSON input:
 
     }
 
-}
+    }
 
 Example JSON output
 
-{
+    {
 
     "temperature": 279.19
 
-}
+    }
 
 All outputs are in [SI](https://en.wikipedia.org/wiki/International_System_of_Units) units.
 ![Layout](http://i.imgur.com/a9DR1pk.png)
