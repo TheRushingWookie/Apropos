@@ -48,7 +48,7 @@ def query(query, target=None, wisdom=100, fast=False):
         print query
         urls = [url[0] for url in response['apis']]
         contents = [{'url': url, 'query': query} for url in urls]
-       
+
         if 'wisdom' in query["mode"]:
             if fast:
                 q = Queue(len(urls))
@@ -133,7 +133,7 @@ def register_api(api_provider, api_name, api_url,
     return response
 
 
-# register_api('Example_provider','openweathermap','http://localhost:7000/query',provider_key,('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'),"{}",'weather')
+register_api('Example_provider','forecast','http://localhost:9000/query',"268aaf3f-5c50-45d3-bf8d-4134747e2420",('city','latitude','longitude','lat','lng','long','humidity', 'pressure', 'cloudiness', 'temperature', 'min_temp', 'current temperature', 'max_temp', 'speed', 'wind_direction'),"{}",'weather')
 
 
 """
@@ -215,8 +215,9 @@ Some example calls
 
 if __name__ == "__main__":
      print query({"action": "weather",
-                  "input": {"city": 'Boston'},
-                  "output": {"temperature": "int"}})
+                  "apikey": "4e6c3cb57748a14de046c4620ec9d7d7",
+                  "input": {"latitude": "10", "longitude": '10'},
+                  "output": {"temperature": "int", 'adadad' : 'int'}})
 
 #     # print register_api_provider('Google', 'google@gmail.com')
 

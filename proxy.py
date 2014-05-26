@@ -6,13 +6,12 @@ import requests
 import hmac
 import base64
 from os.path import *
-from datetime import timedelta
-from flask import Flask, make_response, request, current_app
-from functools import update_wrapper
+from flask import Flask, make_response, request
 from collections import OrderedDict
 from hashlib import sha1
-
-
+from flask_cors import *
+import logging
+from logging import FileHandler
 class RoutingData(object):
 
     def __init__(self, args, kwargs):
@@ -42,49 +41,6 @@ class SuperFlask(Flask):
                 for rd in rds:
                     self.route(*rd.args, **rd.kwargs)(fn)
 
-
-def crossdomain(origin=None, methods=None, headers=None,
-                max_age=21600, attach_to_all=True,
-                automatic_options=True):
-    if methods is not None:
-        methods = ', '.join(sorted(x.upper() for x in methods))
-    if headers is not None and not isinstance(headers, basestring):
-        headers = ', '.join(x.upper() for x in headers)
-    if not isinstance(origin, basestring):
-        origin = ', '.join(origin)
-    if isinstance(max_age, timedelta):
-        max_age = max_age.total_seconds()
-
-    def get_methods():
-        if methods is not None:
-            return methods
-
-        options_resp = current_app.make_default_options_response()
-        return options_resp.headers['allow']
-
-    def decorator(f):
-        def wrapped_function(*args, **kwargs):
-            if automatic_options and request.method == 'OPTIONS':
-                resp = current_app.make_default_options_response()
-            else:
-                resp = make_response(f(*args, **kwargs))
-            if not attach_to_all and request.method != 'OPTIONS':
-                return resp
-
-            h = resp.headers
-
-            h['Access-Control-Allow-Origin'] = origin
-            h['Access-Control-Allow-Methods'] = get_methods()
-            h['Access-Control-Max-Age'] = str(max_age)
-            if headers is not None:
-                h['Access-Control-Allow-Headers'] = headers
-            return resp
-
-        f.provide_automatic_options = False
-        return update_wrapper(wrapped_function, f)
-    return decorator
-
-
 class proxy(SuperFlask):
     output_tag_paths = []
     provider_key = ''
@@ -98,19 +54,17 @@ class proxy(SuperFlask):
     # update_tags(api_provider_name,api_endpoint_name,owner_key,new_tags)
 
     @route("/query", methods=['POST', 'OPTIONS'])
-    @crossdomain(origin='*')
+    @cross_origin(origins='*',headers=['Origin', 'X-Requested-With', 'Content-Type', 'Accept'])
     def query(self):
-
         io_json_dict = request.json
         # return str(instance.actions)
         #io_json_dict = json.loads(io_json_dict)
         #self.logger.debug('Json is %s', io_json_dict)
         action = io_json_dict['action']
-        print action
         if action:
             print(str(action))
             funct = self.actions[str(action)]
-            print "request.json %s" % (request.json)
+            self.logger.warn("request.json %s" % (request.json))
             self.logger.debug("Funct selected is %s", str(funct))
             json_output = funct(io_json_dict)
             self.logger.debug("json_output %s", str(json_output))
@@ -119,7 +73,7 @@ class proxy(SuperFlask):
                 return '{0}({1})'.format(callback, self.filter_outputs(io_json_dict, json_output))
             else:
                 return self.filter_outputs(io_json_dict, json_output)
-        return "hello"
+        return "No action"
 
     def load_config(self):
         '''Loads a json config file to provide initialization values for provider_key, provider_name, domain_name, api_name.'''
@@ -127,7 +81,6 @@ class proxy(SuperFlask):
             json_string = json_file.read()
             print json_string
             json_config = json.loads(json_string)
-
             self.provider_key = json_config['provider_key']
             self.provider_name = json_config['provider_name']
             self.domain_name = json_config['domain_name']
@@ -145,11 +98,15 @@ class proxy(SuperFlask):
 
     def __init__(self, import_name):
         super(proxy, self).__init__(import_name)
+        a = logging.getLogger(name='proxies.forecast')
+        file_handler = FileHandler('/Users/quinnjarrell/Desktop/Apropos/' + self.logger_name)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        a.addHandler(file_handler)
         self.tags = self.output_tag_paths.keys() + self.input_tags
-        self.logger.warn("tags are %s", self.tags)
         self.actions = self.init_actions()
         self.json_outputs = self.init_outputs()
-        self.logger.debug(self.json_outputs)
+        self.logger.warn('works %s' % self.logger)
 
 
     def standard_type_converter(self, val, val_type):
@@ -237,12 +194,10 @@ class proxy(SuperFlask):
 
     def init_outputs(self):
         self.load_config()
-        self.logger.warning("tags are %s", self.tags)
         self.update_tags(self.tags)
         field_names = self.output_tag_paths
         field_funct_hash = {}
         name_conversions = {}
-        self.logger.debug("fields %s ", field_names)
         for key in field_names.keys():
             field_funct_hash[key] = self.query_access_funct
 

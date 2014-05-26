@@ -56,13 +56,14 @@ function decide(responses){
     var domain_name = "http://127.0.0.1:5000/"
 
 
-function query(query, target, wisdom, fast){
+function query(query, target, wisdom, fast, authent){
     /*
     Example:
     query = {"action": "weather",
              "input": {"zip": 94539},
              "output": {"temperature": "int"}}
     */
+    authent = (typeof authent === "undefined") ? "None" : authent;
     target = 0 || target;
     wisdom = 100 || wisdom;
     fast = false || fast;
@@ -82,9 +83,11 @@ function query(query, target, wisdom, fast){
     req = $.ajax({
         type: "POST",
         url: domain_name + "query",
-        data: JSON.stringify({"action": "weather",
-                 "input": {"city": 'Bethesda'},
-                 "output": {"temperature": "int"}}),
+        data: JSON.stringify(
+        {"action": "weather",
+         "authent": authent
+         "input": {"city": 'Bethesda'},
+         "output": {"temperature": "int"}}),
         contentType: "application/json;",
         dataType: "json",
     });

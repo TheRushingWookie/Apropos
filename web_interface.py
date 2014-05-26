@@ -5,6 +5,7 @@ import database
 import sys
 import json
 
+from flask_cors import *
 
 interface = Flask(__name__)
 
@@ -22,6 +23,7 @@ def test_html():
 
 
 @app.route("/query", methods=["POST"])
+@cross_origin(origins='*',headers=['Origin', 'X-Requested-With', 'Content-Type', 'Accept'])
 def web_query():
     logger.debug("raw json input %s", request.json)
     check_assertions(request, '/query')
