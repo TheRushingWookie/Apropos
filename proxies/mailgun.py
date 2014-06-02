@@ -5,7 +5,6 @@ class mailgun(proxy.proxy):
     config_file_path = os.getcwd() + "/proxies/mailgun_json_config.json"
     output_tag_paths = {'message': ['message'],'id':['id']}
     input_tags = ['from','to','subject','text']
-
     def send_message(self, json_command):
         url = 'https://api.mailgun.net/v2/%s/messages'
         json_input = json_command['input']
@@ -28,4 +27,3 @@ class mailgun(proxy.proxy):
         return response.json()
     def init_actions(self):
         return {'sendmail':self.send_message}
-

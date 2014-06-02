@@ -15,15 +15,16 @@ def run_proxy(proxy_name):
     directory = os.path.abspath(inspect.getsourcefile(run_proxy))
     directory = os.path.dirname(directory)
     sys.path.append(directory)
+    print "starting %s" % proxy_name
     mod = importlib.import_module("proxies." + proxy_name)
 
     proxy_instance = getattr(mod, proxy_name)(mod.__name__)
-    print 'loggers %s' % logging.getLogger().manager.loggerDict.keys()
+
     actions = proxy_instance.init_actions()
     return proxy_instance
 
 
-proxy_list = ["mailgun", ]
+proxy_list = ["mailgun", 'openweathermap', 'forecast', 'TimeAPI']
 for proxy_name in proxy_list:
     # YahooStocks, WebServiceXStockQuotes
     proxies[proxy_name] = run_proxy(proxy_name)

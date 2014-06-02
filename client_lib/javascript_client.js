@@ -56,7 +56,7 @@ function decide(responses){
     var domain_name = "http://127.0.0.1:5000/"
 
 
-function query(query, target, wisdom, fast, authent){
+function query(query, callback, target, wisdom, fast, authent){
     /*
     Example:
     query = {"action": "weather",
@@ -84,10 +84,7 @@ function query(query, target, wisdom, fast, authent){
         type: "POST",
         url: domain_name + "query",
         data: JSON.stringify(
-        {"action": "weather",
-         "authent": authent
-         "input": {"city": 'Bethesda'},
-         "output": {"temperature": "int"}}),
+        query),
         contentType: "application/json;",
         dataType: "json",
     });
@@ -97,14 +94,14 @@ function query(query, target, wisdom, fast, authent){
         query = sanitize_tags(query, tag_map)
 
         var urls = []
-
-        for (var url_index = 0;url_index < response['apis'][0].length;url_index++){
+        console.log(response['apis'])
+        for (var url_index = 0; url_index < response['apis'][0].length; url_index++){
             var url = response['apis'][0][url_index]
-
             urls.push(url)
         }
+
         var contents = []
-        for (var url_index = 0;url_index < urls.length;url_index++){
+        for (var url_index = 0; url_index < urls.length; url_index++){
             var url = urls[url_index]
             contents.push({'url': url, 'query': query})
         }
@@ -119,7 +116,7 @@ function query(query, target, wisdom, fast, authent){
                         var url = urls[url_index]
                         reqs[url] = query_proxy(contents)
                         reqs[url].done(function(data) {
-                        alert(JSON.stringify(data))
+                        callback(JSON.stringify(data))
                     });
                     }
 
@@ -132,7 +129,7 @@ function query(query, target, wisdom, fast, authent){
                         var content = contents[content_id]
                         reqs[url] = query_proxy(content)
                         reqs[url].done(function(data) {
-                        alert(JSON.stringify(data))
+                        callback(JSON.stringify(data))
                     });
                     }
 
@@ -154,6 +151,7 @@ function query_proxy(content){
     Returns response from proxy.
     */
         //alert(JSON.stringify(content))
+        console.log("querying")
         return $.ajax({
         type: "POST",
         url: content['url'] + '?json=',
@@ -162,6 +160,6 @@ function query_proxy(content){
         crossDomain: true,
         dataType: "json",
 })}
-query({"action": "weather",
+/*query({"action": "weather",
                  "input": {"city": 'Bethesda'},
-                 "output": {"temperature": "int"}})
+                 "output": {"temperature": "int"}})*/

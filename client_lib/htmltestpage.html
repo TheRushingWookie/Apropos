@@ -6,13 +6,42 @@
 </head>
 
 <body>
+
+
+
 <div id='test'></div>
+<div id="example-one" contenteditable="true">
+<style scoped>
+  #example-one { margin-bottom: 10px; }
+  [contenteditable="true"] { padding: 10px; outline: 2px dashed #CCC; }
+  [contenteditable="true"]:hover { outline: 2px dashed #0090D2; }
+</style>
+<code id="text">{"action": "weather",
+                 "input": {"city": "Bethesda"},
+                 "output": {"temperature": "int"}}</code>
+
+</div>
+<Button onclick="getjson()">Submit</Button>
+<p>Output</p>
+<div id="outputdiv">
+
+	<style scoped>
+		#outputdiv { margin-bottom: 10px; padding: 10px; outline: 2px dashed #CCC;}
+
+	</style>
+
+	<code id=output_box></code>
+
 </body>
-
-<script type='text/javascript'>
-$('#test').html(query({"action": "weather",
-                       "input": {"city": 'Urbana'},
-                       "output": {"pressure": "string"}}));
-</script>
-
+</div>
+	<script type="text/javascript">
+	function getjson()
+	{
+		query(JSON.parse(($("#text").text())), displayjson)
+	}
+	function displayjson(data)
+	{
+		$("#output_box").text(data)
+	}
+	</script>
 </html>
