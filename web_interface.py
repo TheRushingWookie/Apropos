@@ -25,7 +25,6 @@ def test_html():
 @app.route("/query", methods=["POST"])
 @cross_origin(origins='*',headers=['Origin', 'X-Requested-With', 'Content-Type', 'Accept'])
 def web_query():
-    logger.debug("raw json input %s", request.json)
     check_assertions(request, '/query')
     logger.debug("raw json input %s", request.json)
     tags = tuple(str(tag) for tag in
@@ -39,13 +38,13 @@ def web_query():
     logger.debug("Fuzzed tags %s", fuzzed_tags)
     for tag in fuzzed_tag_map.keys():
         fuzzed_tag_map[fuzzed_tag_map[tag]] = tag
-    apis = {
-        'apis': database.query_api(request.json["action"], tuple(fuzzed_tags)),
-        'corrected_tags': fuzzed_tag_map}
+    apis = database.query_api(request.json["action"], tuple(fuzzed_tags))
+    json_output = {'apis': apis,
+                   'corrected_tags': fuzzed_tag_map}
     logger.debug('apis %s', apis)
-
-    if apis:
-        return json.dumps(apis)
+    logger.debug('json_output %s', json_output)
+    if json_output:
+        return json.dumps(json_output)
     else:
         return json.dumps({"Status": False})
 

@@ -6,86 +6,85 @@ from hashlib import sha1
 import hmac
 import base64
 from collections import OrderedDict
-
+import logging
 
 domain_name = "http://localhost:5000/"
 provider_key = '268aaf3f-5c50-45d3-bf8d-4134747e2420'
-
+logger = logging.getLogger('PythonClient')
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+logger.addHandler(ch)
 
 """
 Public library functions:
 """
 
 
-def query(query, target=None, wisdom=100, fast=False):
+def query(query, mode='wisdom', target=None, wisdom=100):
     """
     Example:
     query = {"action": "weather",
              "input": {"zip": 94539},
              "output": {"temperature": "int"}}
     """
-
-    if isinstance(target, basestring):
-        query["mode"] = {"target": target}
-    elif fast:
-        wisdom = 1
-        query["mode"] = {"wisdom": wisdom}
-    elif isinstance(wisdom, int):
-        query["mode"] = {"wisdom": wisdom}
-    else:
-        raise Exception("Invalid Mode")
+    print "in"
+    logger.debug('start')
 
     req = requests.post(domain_name + "query?",
                         data=json.dumps(query),
                         headers={'Content-type': 'application/json',
                                  'Accept': 'application/json'})
     response = req.json()
-
+    logger.debug('query %s', query)
     if response:
         tag_map = response['corrected_tags']
-        print query
+
         query = sanitize_tags(query, tag_map)
-        print query
-        urls = [url[0] for url in response['apis']]
+        logger.debug('response json %s', response)
+        urls = response['apis']
         contents = [{'url': url, 'query': query} for url in urls]
+        logger.debug('urls %s', contents)
+        if mode == 'fast':
+            q = Queue(len(urls))
 
-        if 'wisdom' in query["mode"]:
-            if fast:
-                q = Queue(len(urls))
+            def fast_wrapper(params):
+                q.put(query_proxy(params), block=False)
 
-                def fast_wrapper(params):
-                    q.put(query_proxy(params), block=False)
+            # Fire off a process for each url
+            processes = [Process(target=fast_wrapper, args=(content,))
+                         for content in contents]
+            [p.start() for p in processes]
 
-                # Fire off a process for each url
-                processes = [Process(target=fast_wrapper, args=(content,))
-                             for content in contents]
-                [p.start() for p in processes]
+            # Block until first process returns
+            # and kill all other living processes
+            fastest_response = q.get(block=True, timeout=60)
 
-                # Block until first process returns
-                # and kill all other living processes
-                fastest_response = q.get(block=True, timeout=60)
+            # This is dirty. Will cause broken pipes
+            # on proxy servers that did not return yet.
+            [p.terminate() for p in active_children()]
 
-                # This is dirty. Will cause broken pipes
-                # on proxy servers that did not return yet.
-                [p.terminate() for p in active_children()]
+            return sanitize_tags(fastest_response, tag_map)
+        elif mode == 'target' and target != None:
+            logger.debug('Target mode for %s', target)
+            target_contents = select_target(target, contents)
+            logger.debug('Target query %s' % target_contents)
+            return query_proxy(target_contents)
+        else:  # Wisdom mode
+            logger.debug("urls returned %s" % (urls))
+            pool = Pool(len(urls) if len(urls) < wisdom else wisdom)
+            response = pool.map(query_proxy, contents)
 
-                return sanitize_tags(fastest_response, tag_map)
-
-            else:  # Wisdom mode
-                print "urls returned %s" % (urls)
-                pool = Pool(len(urls) if len(urls) < wisdom else wisdom)
-                response = pool.map(query_proxy, contents)
-
-                return decide(response)
-
-        elif isinstance(target, basestring):
-            return
-
+            return decide(response)
         return None
     else:
         return None
 
-
+def select_target(target, contents_list):
+    for contents in contents_list:
+        if contents['url'][1] == target:
+            return contents
+    raise ValueError('No target found. Possible targets: %s' % contents_list)
 def register_api_provider(api_provider, contact_info):
     """
     Register as an API provider.
@@ -102,7 +101,6 @@ def register_api_provider(api_provider, contact_info):
 
 def get_key_hmac(base_string):
     assert (provider_key)
-    print base_string
     return base64.urlsafe_b64encode(hmac.new(provider_key,base_string,sha1).digest())
 
 
@@ -124,7 +122,6 @@ def register_api(api_provider, api_name, api_url,
                                          'tags': tags,
                                          'api_login_info': api_login_info,
                                          'category': category})
-    print json_text
     req = requests.post(domain_name + "register_api?",
                         data=json_text,
                         headers={'Content-type': 'application/json',
@@ -146,7 +143,7 @@ def query_proxy(content):
     Returns response from proxy.
     """
     try:
-        req = requests.post(content['url'] + '?json=',
+        req = requests.post(content['url'][0] + '?json=',
                             data=json.dumps(content['query']),
                             headers={'Content-type': 'application/json',
                                      'Accept': 'application/json'})
@@ -159,7 +156,6 @@ def query_proxy(content):
 def sanitize_tags(query, tag_map):
     '''Adjust query to use tags in tag_map.'''
     standardized_query = copy.deepcopy(query)
-    print "start %s" % (standardized_query)
     for tag in query['input']:
         standard_tag = tag_map[tag]
         standardized_query['input'][standard_tag] = query['input'][tag]
@@ -168,7 +164,6 @@ def sanitize_tags(query, tag_map):
         standard_tag = tag_map[tag]
         standardized_query['output'][standard_tag] = query['output'][tag]
         #standardized_query['output'].pop(tag)
-    print "end %s" % (standardized_query)
     return standardized_query
 
 
@@ -188,7 +183,6 @@ def decide(responses):
 
     cache = dict()
 
-    print responses
     # Fill up the hash table
     for response in responses:
 
@@ -217,7 +211,7 @@ if __name__ == "__main__":
      print query({"action": "weather",
                   "apikey": "4e6c3cb57748a14de046c4620ec9d7d7",
                   "input": {"latitude": "10", "longitude": '10'},
-                  "output": {"temperature": "int", 'adadad' : 'int'}})
+                  "output": {"temperature": "int", 'adadad' : 'int'}},target='forecast', mode='target')
 
 #     # print register_api_provider('Google', 'google@gmail.com')
 

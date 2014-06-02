@@ -423,7 +423,7 @@ def query_api(category, tags):
 
     # print "table"
     # print_table('api_providers')
-    intersect_string = '''SELECT api_endpoints.api_url
+    intersect_string = '''SELECT api_endpoints.api_url, api_endpoints.api_name
                     FROM tagmap, api_endpoints, tags
                     WHERE tags.id = tagmap.tag_id
                     AND api_endpoints.category = (?)
@@ -436,7 +436,8 @@ def query_api(category, tags):
     filtered_rows = []
 
     for row in query_rows:
-        filtered_rows.append([row[0]])
+        logger.debug('row %s', row)
+        filtered_rows.append(row)
     logger.debug('''filtered_rows %s''', filtered_rows)
     return filtered_rows
 
