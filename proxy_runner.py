@@ -23,7 +23,7 @@ def run_proxy(proxy_name):
     return proxy_instance
 
 
-proxy_list = ["forecast", ]
+proxy_list = ["mailgun", ]
 for proxy_name in proxy_list:
     # YahooStocks, WebServiceXStockQuotes
     proxies[proxy_name] = run_proxy(proxy_name)
